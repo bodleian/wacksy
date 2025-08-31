@@ -59,8 +59,9 @@ impl fmt::Display for RecordUrl {
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
+    use warc::{BufferedBody, Record, WarcHeader};
+    use pretty_assertions::assert_eq;
+    use super::RecordUrl;
 
     #[test]
     fn valid_url() {

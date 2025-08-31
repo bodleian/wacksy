@@ -45,8 +45,9 @@ impl fmt::Display for RecordStatus {
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
+    use warc::{BufferedBody, Record};
+    use pretty_assertions::assert_eq;
+    use super::RecordStatus;
 
     #[test]
     fn valid_status() {

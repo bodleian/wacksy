@@ -72,9 +72,9 @@ impl fmt::Display for PageRecord {
 
 #[cfg(test)]
 mod tests {
-    use warc::WarcHeader;
-
-    use super::*;
+    use super::PageRecord;
+    use pretty_assertions::assert_eq;
+    use warc::{BufferedBody, Record, RecordType, WarcHeader};
 
     #[test]
     fn valid_page_record() {

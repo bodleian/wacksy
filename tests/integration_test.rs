@@ -1,3 +1,4 @@
+use pretty_assertions::assert_eq;
 use std::{error::Error, fs, path::Path};
 use wacksy::indexer;
 

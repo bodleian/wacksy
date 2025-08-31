@@ -151,7 +151,8 @@ pub struct PageIndex(Vec<PageRecord>);
 impl fmt::Display for PageIndex {
     fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
         let index_string: String = self.0.iter().map(ToString::to_string).collect();
-        let header: &'static str = "{\"format\":\"json-pages-1.0\",\"id\":\"pages\",\"title\":\"All Pages\"}";
+        let header: &'static str =
+            "{\"format\":\"json-pages-1.0\",\"id\":\"pages\",\"title\":\"All Pages\"}";
         return write!(message, "{header}\n{index_string}");
     }
 }

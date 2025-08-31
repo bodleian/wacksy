@@ -33,8 +33,9 @@ impl fmt::Display for RecordDigest {
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
+    use super::RecordDigest;
+    use pretty_assertions::assert_eq;
+    use warc::{BufferedBody, Record, WarcHeader};
 
     #[test]
     fn valid_digest() {

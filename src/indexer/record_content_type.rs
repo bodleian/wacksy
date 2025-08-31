@@ -72,8 +72,9 @@ impl fmt::Display for RecordContentType {
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
+    use super::RecordContentType;
+    use warc::{BufferedBody, Record};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn valid_content_type() {
