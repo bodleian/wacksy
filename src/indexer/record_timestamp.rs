@@ -43,9 +43,9 @@ impl fmt::Display for RecordTimestamp {
 
 #[cfg(test)]
 mod tests {
-    use warc::{BufferedBody, Record, WarcHeader};
     use super::RecordTimestamp;
     use pretty_assertions::assert_eq;
+    use warc::{BufferedBody, Record, WarcHeader};
 
     #[test]
     fn valid_timestamp() {

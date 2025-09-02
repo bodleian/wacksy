@@ -47,10 +47,10 @@ impl fmt::Display for WarcFilename {
 }
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-    use warc::{BufferedBody, Record, WarcHeader};
     use super::WarcFilename;
     use pretty_assertions::assert_eq;
+    use std::path::Path;
+    use warc::{BufferedBody, Record, WarcHeader};
 
     #[test]
     fn valid_filename() {
