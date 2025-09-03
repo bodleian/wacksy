@@ -241,3 +241,71 @@ impl Error for DataPackageError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::DataPackage;
+    use serde_json::Value;
+    use std::{error::Error, fs::File};
+
+    mod common {
+        use super::DataPackage;
+        use crate::indexer;
+        use std::path::Path;
+
+        pub fn create_datapackage() -> DataPackage {
+            let warc_file_path: &Path = Path::new("tests/example.warc.gz");
+            let index = indexer::Index::index_file(warc_file_path).unwrap();
+            return DataPackage::new(&warc_file_path, &index).unwrap();
+        }
+    }
+
+    /// This test creates a datapackage and validates it against the
+    /// Frictionless Datapackage Schema v1
+    #[test]
+    fn validate_datapackage_schema() -> Result<(), Box<dyn Error>> {
+        let datapackage: DataPackage = common::create_datapackage();
+        let instance: Value = serde_json::to_value(&datapackage)?;
+        let schema: Value =
+            serde_json::from_reader(File::open("tests/schemas/datapackage.schema.json")?)?;
+
+        // Build & reuse (faster)
+        let validator = jsonschema::validator_for(&schema)?;
+
+        // Iterate over errors
+        for error in validator.iter_errors(&instance) {
+            eprintln!("Error: {error}");
+            eprintln!("Location: {}", error.instance_path);
+        }
+
+        // Boolean result
+        assert!(jsonschema::draft4::is_valid(&schema, &instance));
+
+        Ok(())
+    }
+
+    /// This test creates a datapackage digest and validates it against a schema I've made up.
+    #[test]
+    fn validate_datapackage_digest_schema() -> Result<(), Box<dyn Error>> {
+        let datapackage: DataPackage = common::create_datapackage();
+        // create the digest
+        let datapackage_digest = datapackage.digest()?;
+        let instance: Value = serde_json::to_value(&datapackage_digest)?;
+        let schema: Value =
+            serde_json::from_reader(File::open("tests/schemas/datapackage-digest.schema.json")?)?;
+
+        // Build & reuse (faster)
+        let validator = jsonschema::validator_for(&schema)?;
+
+        // Iterate over errors
+        for error in validator.iter_errors(&instance) {
+            eprintln!("Error: {error}");
+            eprintln!("Location: {}", error.instance_path);
+        }
+
+        // Boolean result
+        assert!(jsonschema::draft202012::is_valid(&schema, &instance));
+
+        Ok(())
+    }
+}
