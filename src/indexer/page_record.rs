@@ -8,6 +8,7 @@ use warc::{BufferedBody, Record, RecordType};
 /// A page which would make up a line in a pages.jsonl file.
 #[derive(Serialize)]
 pub struct PageRecord {
+    pub id: String,
     /// The date and time when the web archive snapshot was created
     #[serde(rename = "ts")]
     pub timestamp: RecordTimestamp,
@@ -49,6 +50,7 @@ impl PageRecord {
             && status == RecordStatus(200)
         {
             return Ok(Self {
+                id: "replace this with a proper uuid".to_owned(),
                 timestamp: RecordTimestamp::new(record)?,
                 url: RecordUrl::new(record)?,
             });
@@ -91,7 +93,7 @@ mod tests {
 
         let generated_page_record = PageRecord::new(&record).unwrap().to_string();
         let example_page_record =
-            format!("{{\"ts\":\"2025-08-06T13:37:28Z\",\"url\":\"{target_url}\"}}\n");
+            format!("{{\"id\":\"replace this with a proper uuid\",\"ts\":\"2025-08-06T13:37:28Z\",\"url\":\"{target_url}\"}}\n");
 
         assert_eq!(generated_page_record, example_page_record);
     }
