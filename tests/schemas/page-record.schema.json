@@ -1,0 +1,29 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "tests/schemas/page-record.schema.json",
+    "description": "A simple piece of JSON to verify a record in a pages.jsonl file.",
+    "type": "object",
+    "properties": {
+        "url": {
+            "type": "string",
+            "description": "A URL for the page in the archive.",
+            "format": "uri"
+        },
+        "ts": {
+            "type": "string",
+            "description": "A timestamp, usually drawn from the WARC record timestamp, must be in RFC3339 format",
+            "format": "date-time"
+        },
+        "id": {
+            "type": "string",
+            "description": "A short uuid to identify the record",
+            "minLength": 1,
+            "maxLength": 128
+        }
+    },
+    "required": [
+        "url",
+        "ts",
+        "id"
+    ]
+}

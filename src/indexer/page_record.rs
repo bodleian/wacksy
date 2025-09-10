@@ -2,13 +2,15 @@ use crate::indexer::{
     RecordContentType, RecordStatus, RecordTimestamp, RecordUrl, indexing_errors::IndexingError,
 };
 use serde::Serialize;
+use short_uuid::ShortUuid;
 use std::fmt;
 use warc::{BufferedBody, Record, RecordType};
 
 /// A page which would make up a line in a pages.jsonl file.
 #[derive(Serialize)]
 pub struct PageRecord {
-    pub id: String,
+    /// A [short uuid](https://github.com/radim10/short-uuid) to identify the page record
+    pub id: ShortUuid,
     /// The date and time when the web archive snapshot was created
     #[serde(rename = "ts")]
     pub timestamp: RecordTimestamp,
@@ -50,8 +52,8 @@ impl PageRecord {
             && status == RecordStatus(200)
         {
             return Ok(Self {
-                id: "replace this with a proper uuid".to_owned(),
-                timestamp: RecordTimestamp::new(record)?,
+                id: ShortUuid::generate(),
+                timestamp: RecordTimestamp::new(record)?, // when this gets serialised to json it prints the RFC-3339 formatted string, but, why? investigate.
                 url: RecordUrl::new(record)?,
             });
         } else {
@@ -75,11 +77,12 @@ impl fmt::Display for PageRecord {
 #[cfg(test)]
 mod tests {
     use super::PageRecord;
-    use pretty_assertions::assert_eq;
+    use serde_json::Value;
+    use std::{error::Error, fs::File};
     use warc::{BufferedBody, Record, RecordType, WarcHeader};
 
     #[test]
-    fn valid_page_record() {
+    fn valid_page_record() -> Result<(), Box<dyn Error>> {
         let timestamp = "2025-08-06T14:37:28+01:00";
         let target_url = "https://thehtml.review/04/ascii-bedroom-archive/";
 
@@ -91,12 +94,24 @@ mod tests {
             .unwrap();
         let record = headers.add_body("HTTP/1.1 200\ncontent-type: text/html\n");
 
-        let generated_page_record = PageRecord::new(&record).unwrap().to_string();
-        let example_page_record =
-            format!("{{\"id\":\"replace this with a proper uuid\",\"ts\":\"2025-08-06T13:37:28Z\",\"url\":\"{target_url}\"}}\n");
+        let generated_page_record = PageRecord::new(&record)?;
+        let instance: Value = serde_json::to_value(&generated_page_record)?;
 
-        assert_eq!(generated_page_record, example_page_record);
+        let schema: Value =
+            serde_json::from_reader(File::open("tests/schemas/page-record.schema.json")?)?;
+
+        // Build & reuse (faster)
+        let validator = jsonschema::validator_for(&schema)?;
+
+        // Iterate over errors
+        for error in validator.iter_errors(&instance) {
+            eprintln!("Error: {error}");
+            eprintln!("Location: {}", error.instance_path);
+        }
+
+        // Boolean result
+        assert!(jsonschema::draft202012::is_valid(&schema, &instance));
+
+        Ok(())
     }
-
-    // todo: test the different conditions, eg. a resource with a different content type
 }

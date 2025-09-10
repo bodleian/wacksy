@@ -870,6 +870,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "short-uuid"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58bea582e8f851430ff43e07edfc4c30b6a418f2ec4b6fed3f8496537e41a5df"
+dependencies = [
+ "serde",
+ "uuid 1.18.1",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -985,6 +995,7 @@ version = "1.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
 dependencies = [
+ "getrandom 0.3.3",
  "js-sys",
  "wasm-bindgen",
 ]
@@ -1025,6 +1036,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "short-uuid",
  "surt-rs",
  "url",
  "warc",
