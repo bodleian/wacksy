@@ -84,7 +84,7 @@ impl WACZ {
     ///
     /// Returns a `rawzip` error if anything goes wrong with adding files
     /// files to the archive.
-    pub fn zip(&self) -> Result<Vec<u8>, rawzip::Error> {
+    pub fn as_zip_archive(&self) -> Result<Vec<u8>, rawzip::Error> {
         fn add_file_to_archive(
             archive: &mut ZipArchiveWriter<&mut Vec<u8>>,
             compression_method: CompressionMethod,
