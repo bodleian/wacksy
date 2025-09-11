@@ -24,7 +24,7 @@ This library provides two main ᴀᴘɪ functions.
 fn main() -> Result<(), Box<dyn Error>> {
     let warc_file_path = Path::new("example.warc.gz"); // set path to your ᴡᴀʀᴄ file
     let wacz_object = WACZ::from_file(warc_file_path)?; // index the ᴡᴀʀᴄ and create a ᴡᴀᴄᴢ object
-    let zipped_wacz: Vec<u8> = wacz_object.zip()?; // zip up the ᴡᴀᴄᴢ
+    let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?; // zip up the ᴡᴀᴄᴢ
     fs::write("example.wacz", zipped_wacz)?; // write out to file
     Ok(())
 }
