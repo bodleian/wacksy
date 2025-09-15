@@ -18,8 +18,13 @@ pub enum IndexingError {
     ValueNotFound(String),
     /// this type of record can not be indexed
     UnindexableRecordType(warc::RecordType),
-    /// probkem
+    /// could not read the WARC file
     WarcFileError(io::Error),
+    /// an unrecoverable error with a WARC record
+    /// which means the rest of the WARC file cannot be read
+    /// this error wraps [`warc::Error`] and returns
+    /// the record number and the byte offset of the
+    /// record in the WARC file
     CriticalRecordError(warc::Error, usize, u64),
 }
 impl Display for IndexingError {
