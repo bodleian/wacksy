@@ -20,7 +20,7 @@ pub mod datapackage;
 pub mod indexer;
 use std::{error::Error, fmt, path::Path};
 
-use rawzip::{CompressionMethod, ZipArchiveWriter, ZipDataWriter};
+use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
@@ -92,15 +92,20 @@ impl WACZ {
             file_path: &str,
         ) {
             // Start a new file in our zip archive.
-            let mut file = archive
+            let (mut entry, config) = archive
                 .new_file(file_path)
                 .compression_method(compression_method)
-                .create()
+                .start()
                 .unwrap();
 
+            let encoder = match compression_method {
+                CompressionMethod::Store => &mut entry,
+                CompressionMethod::Deflate => todo!(), // provide a deflate encoder
+                _ => todo!(),                          // return an error
+            };
             // Wrap the file in a ZipDataWriter, which will track information for the
             // Zip data descriptor (like uncompressed size and crc).
-            let mut writer = ZipDataWriter::new(&mut file);
+            let mut writer = config.wrap(encoder);
 
             // Copy the data to the writer.
             std::io::copy(&mut &*file_data, &mut writer).unwrap();
@@ -113,21 +118,18 @@ impl WACZ {
             println!("wrote {uncompressed_size} bytes to {file_path}");
 
             // Write out the data descriptor and return the number of bytes the data compressed to.
-            file.finish(descriptor).unwrap();
+            entry.finish(descriptor).unwrap();
         }
 
         // Create a new Zip archive in memory.
-        let mut output = Vec::new();
+        let mut output = Vec::with_capacity(14_000);
         let mut archive = ZipArchiveWriter::new(&mut output);
-
-        // Set compression method to Store (no compression).
-        let compression_method = CompressionMethod::Store;
 
         // iterate over every resource in the datapackage
         for datapackage_resource in &self.datapackage.resources {
             add_file_to_archive(
                 &mut archive,
-                compression_method,
+                CompressionMethod::Store,
                 &datapackage_resource.content,
                 &datapackage_resource.path,
             );
@@ -136,7 +138,7 @@ impl WACZ {
         // add datapackage file
         add_file_to_archive(
             &mut archive,
-            compression_method,
+            CompressionMethod::Store,
             &serde_json::to_vec(&self.datapackage).unwrap(),
             "datapackage.json",
         );
@@ -144,7 +146,7 @@ impl WACZ {
         // add digest file
         add_file_to_archive(
             &mut archive,
-            compression_method,
+            CompressionMethod::Store,
             &serde_json::to_vec(&self.datapackage_digest).unwrap(),
             "datapackage-digest.json",
         );
