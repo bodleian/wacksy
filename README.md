@@ -18,7 +18,7 @@ cargo add wacksy
 
 This library provides two main ᴀᴘɪ functions.
 `from_file()` takes a ᴡᴀʀᴄ file and returns a structured representation of a ᴡᴀᴄᴢ object.
-`zip()` takes a ᴡᴀᴄᴢ object and zips it up to a byte array using [rawzip](https://github.com/nickbabcock/rawzip).
+`as_zip_archive()` takes a ᴡᴀᴄᴢ object and zips it up to a byte array using [rawzip](https://github.com/nickbabcock/rawzip).
 
 ```rust
 fn main() -> Result<(), Box<dyn Error>> {
