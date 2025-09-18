@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3](https://github.com/bodleian/wacksy/compare/v0.0.2...v0.0.3) - 2025-09-18
+
+### Added
+
+- add more error handling, and specifically in the indexer
+
+### Fixed
+
+- *(indexer)* generate short uuids for each page record, fixes #57
+- *(indexer)* add placeholder ids to pages.jsonl records, passes frictionless validation and fixes #54
+- *(indexer)* add title to pages.jsonl header, closing #51 (again)
+- *(indexer)* add formatted header when writing out pages.jsonl, closes #52
+- *(indexer)* rename timestamp to ts in page_record.rs, closes #53
+- *(datapackage)* the file name has to be named just 'name'
+- *(indexer)* shift the record counter forward by 1, fixes #47
+
+### Other
+
+- correct name of function in readme
+- upgrade rawzip to 0.4.1 and rewrite as_zip_archive with new api, closes #49 and #55
+- *(indexer)* explain CriticalRecordError
+- change documentation and doctest example to match function renamed in d7cae2f
+- renamed zip function, fixes #56
+- allow multiple crate versions
+- *(datapackage)* move datapackage validation into unit test
+- *(indexer)* formatter moved around the order of the imports
+- add json schema validation to integration tests, closes #50
+- use pretty assertions
+- add setuptools to requirements.txt
+- specify python version
+- add requirements.txt
+- use setup-python in ci
+- fix broken test which relied on example
+- add output.wacz to gitignore
+- replace examples directory with doctest
+- *(readme)* add usage example
+- document from_file implemented on WACZ
+- bump MSRV to use .display() in the indexer
+- bump MSRV and cargofile following release of Rust 1.89
+- from_file now returns a result with DataPackageError
+- initial work on making a simpler API
+- new link in readme
+- use new git checkout action
+- *(indexer)* wrap indexer in Index struct
+- *(indexer)* only attempt to create a page record if the cdxj indexing was successful
+- pass whole index into datapackage
+- update/add badges to readme
+- change repository link to https://github.com/bodleian/wacksy/
+
 ## [0.0.2](https://github.com/bodleian/wacksy/compare/v0.0.1...v0.0.2) - 2025-08-06
 
 This release involves some refactoring, different parts of the indexer are now in their own modules.
