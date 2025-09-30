@@ -9,12 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1](https://github.com/bodleian/wacksy/compare/v0.1.0...v0.1.1) - 2025-09-30
 
-### Other
-
-- add changelog entry for new version
-
-## [0.1.0](https://github.com/bodleian/wacksy/compare/v0.0.2...v0.1.0) - 2025-09-26
-
 This first minor release includes a new API, made up of two functions: `from_file()` takes a WARC file, indexes it and produces a structured representation of a WACZ object, and `as_zip_archive()` takes that structured representation and writes it out to a zip archive.
 
 > [!NOTE]
@@ -43,11 +37,17 @@ Serialisation of values to JSON still feels too ✨magical✨ to me; I don't nec
 - Bumped the MSRV to 1.87.
 - Moved the repository to the Bodleian organisation on GitHub.
 - Use pretty assertions in tests.
+- Wrote this changelog.
 
 ### Dependencies
 
 - Updated [rawzip](https://lib.rs/crates/rawzip) to version 0.4.1, and refactored `as_zip_archive` to handle the new API.
 - Added [short uuid](https://lib.rs/crates/short-uuid) for generating page ids.
+
+## [0.1.0](https://github.com/bodleian/wacksy/compare/v0.0.2...v0.1.0) - 2025-09-26
+
+Accidental early release of v0.1.0 without a changelog.
+Changelog included in patch version.
 
 ## [0.0.2](https://github.com/bodleian/wacksy/compare/v0.0.1...v0.0.2) - 2025-08-06
 
