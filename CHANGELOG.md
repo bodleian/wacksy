@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0](https://github.com/bodleian/wacksy/compare/v0.0.2...v0.1.0) - 2025-09-26
+
+This first minor release includes a new API, made up of two functions: `from_file()` takes a WARC file, indexes it and produces a structured representation of a WACZ object, and `as_zip_archive()` takes that structured representation and writes it out to a zip archive.
+
+> [!NOTE]
+> Despite the more serious committment to a stable API in this version, this library is still not ready for professional use. I'm still not sure the indexer is correctly calculating the byte offset of each record in the WARC file. Output WACZes do not replay properly with [ReplayWeb.page](https://replayweb.page/).
+
+I've been trying to model the construction pattern to fit the conditions of the format. For example, all the resources in a collection must be defined in the datapackage, or a page record cannot be created without a corresponding CDX record. These conditions should be satisfied by a carefully ordered process, with each step flowing logically into the next. The indexer and the new API were (re)written with this goal in mind.
+
+### Pages.jsonl
+
+Each page listed in pages.jsonl now gets assigned a short uuid, I am [not sure if this is necessary](https://github.com/webrecorder/specs/issues/167), but without an id the page records don't pass validation against the [frictionless datapackage schema](https://specs.frictionlessdata.io/schemas/data-package.json).
+The pages file also includes a header line in the form `{"format":"json-pages-1.0","id":"pages","title":"All Pages"}"`.
+
+### Unit test coverage and JSON schemas
+
+I've converted most of the integration tests into unit tests, and where possible replaced string comparison with validation against a JSON Schema.
+Serialisation of values to JSON still feels too ✨magical✨ to me; I don't necessarily want to change any of the code here, but I would like to use serde more _confidently_.
+
+### Fixes
+
+- *(indexer)* move WARC record counter forward by 1 because the iterator ennumeration is zero-indexed. Easy mistake.
+
+### Other
+
+- Renamed `zip()` to `as_zip_archive()`, thanks to @ for the suggestion and [@eviejmorris](https://github.com/eviejmorris) for [the fix](https://github.com/bodleian/wacksy/commit/d7cae2fcee0656eb01eecd26b20a447ecc01cabd).
+- Replaced example code with a doctest, and added usage example to readme.
+- Bumped the MSRV to 1.87.
+- Moved the repository to the Bodleian organisation on GitHub.
+- Use pretty assertions in tests.
+
+### Dependencies
+
+- Updated [rawzip](https://lib.rs/crates/rawzip) to version 0.4.1, and refactored `as_zip_archive` to handle the new API.
+- Added [short uuid](https://lib.rs/crates/short-uuid) for generating page ids.
+
 ## [0.0.2](https://github.com/bodleian/wacksy/compare/v0.0.1...v0.0.2) - 2025-08-06
 
 This release involves some refactoring, different parts of the indexer are now in their own modules.
