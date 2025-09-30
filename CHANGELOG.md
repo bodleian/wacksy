@@ -32,7 +32,7 @@ Serialisation of values to JSON still feels too ✨magical✨ to me; I don't nec
 
 ### Other
 
-- Renamed `zip()` to `as_zip_archive()`, thanks to @ for the suggestion and [@eviejmorris](https://github.com/eviejmorris) for [the fix](https://github.com/bodleian/wacksy/commit/d7cae2fcee0656eb01eecd26b20a447ecc01cabd).
+- Renamed `zip()` to `as_zip_archive()`, thanks to @anna-hope for [the suggestion](https://github.com/bodleian/wacksy/issues/43#issuecomment-3233606691) and @eviejmorris for [the fix](https://github.com/bodleian/wacksy/commit/d7cae2fcee0656eb01eecd26b20a447ecc01cabd).
 - Replaced example code with a doctest, and added usage example to readme.
 - Bumped the MSRV to 1.87.
 - Moved the repository to the Bodleian organisation on GitHub.
@@ -72,7 +72,7 @@ I think this is something which will have to wait until blake3 can be integrated
 ### Dependencies
 
 - This library now depends on [surt-rs](https://github.com/mijho/surt-rs) to create searchable url strings. It's a fairly minimal library and is more comprehensive than my own attempt to write a surt-ing function.
-- Bump [rawzip](https://github.com/nickbabcock/rawzip) to 0.3 ([#41](https://github.com/bodleian/wacksy/pull/41)), thanks [@nickbabcock](https://github.com/nickbabcock)!
+- Bump [rawzip](https://github.com/nickbabcock/rawzip) to 0.3 ([#41](https://github.com/bodleian/wacksy/pull/41)), thanks @nickbabcock!
 
 ## [0.0.1](https://github.com/bodleian/wacksy/compare/v0.0.1-beta...v0.0.1) - 2025-06-20
 
@@ -121,7 +121,7 @@ Still on my todo list is to use the indexer to also create pages.jsonl files.
 - as a style change, this now uses explicit returns everywhere, and I have set lints in cargo.toml to enforce this
 - *(indexer)* many of the index functons are now implemented on types. The completed index is returned *as a struct*, which has a display implementation to write it out to json(l).
 - *(datapackage)* propogate errors upwards, there are still some panics, but structured error handling is a lot more comprehensive now. Happy and unhappy paths are a little clearer to identify.
-- update README with link to a funny meme :)
+- update README with link to a funny meme 🙂
 
 ## [0.0.1-alpha](https://github.com/bodleian/wacksy/releases/tag/v0.0.1-alpha) - 2025-04-05
 
