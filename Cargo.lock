@@ -1036,7 +1036,7 @@ checksum = "5c3082ca00d5a5ef149bb8b555a72ae84c9c59f7250f013ac822ac2e49b19c64"
 
 [[package]]
 name = "wacksy"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "httparse",
