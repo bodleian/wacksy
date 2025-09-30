@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/bodleian/wacksy/compare/v0.1.0...v0.1.1) - 2025-09-30
+
+### Other
+
+- add changelog entry for new version
+
 ## [0.1.0](https://github.com/bodleian/wacksy/compare/v0.0.2...v0.1.0) - 2025-09-26
 
 This first minor release includes a new API, made up of two functions: `from_file()` takes a WARC file, indexes it and produces a structured representation of a WACZ object, and `as_zip_archive()` takes that structured representation and writes it out to a zip archive.
