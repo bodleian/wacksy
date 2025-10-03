@@ -52,27 +52,34 @@ impl WACZ {
     /// datapackage depends on the index being complete, any problem with the
     /// indexer will return early without continuing.
     pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
-        match Index::index_file(warc_file_path) {
-            Ok(index) => {
-                let datapackage = match DataPackage::new(warc_file_path, &index) {
-                    Ok(datapackage) => datapackage,
-                    Err(datapackage_error) => {
-                        return Err(WaczError::DataPackageError(datapackage_error));
-                    }
-                };
-                let datapackage_digest = match datapackage.digest() {
-                    Ok(digest) => digest,
-                    Err(digest_error) => return Err(WaczError::DataPackageError(digest_error)),
-                };
+        // check whether the file exists at the given path
+        if warc_file_path.exists() {
+            match Index::index_file(warc_file_path) {
+                Ok(index) => {
+                    let datapackage = match DataPackage::new(warc_file_path, &index) {
+                        Ok(datapackage) => datapackage,
+                        Err(datapackage_error) => {
+                            return Err(WaczError::DataPackageError(datapackage_error));
+                        }
+                    };
+                    let datapackage_digest = match datapackage.digest() {
+                        Ok(digest) => digest,
+                        Err(digest_error) => return Err(WaczError::DataPackageError(digest_error)),
+                    };
 
-                return Ok(Self {
-                    datapackage,
-                    datapackage_digest,
-                    cdxj_index: index.cdxj,
-                    pages_index: index.pages,
-                });
+                    return Ok(Self {
+                        datapackage,
+                        datapackage_digest,
+                        cdxj_index: index.cdxj,
+                        pages_index: index.pages,
+                    });
+                }
+                Err(indexing_error) => return Err(WaczError::IndexingError(indexing_error)),
             }
-            Err(indexing_error) => return Err(WaczError::IndexingError(indexing_error)),
+        } else {
+            // the file path doesn't exist so return with error
+            let file_path_string = warc_file_path.to_string_lossy().to_string();
+            return Err(WaczError::WarcFileError(file_path_string));
         }
     }
     /// # Zipper
@@ -160,12 +167,16 @@ impl WACZ {
 
 #[derive(Debug)]
 pub enum WaczError {
+    WarcFileError(String),
     IndexingError(IndexingError),
     DataPackageError(DataPackageError),
 }
 impl fmt::Display for WaczError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::WarcFileError(file_path) => {
+                return write!(message, "No file found at {file_path}");
+            }
             Self::IndexingError(error_message) => {
                 return write!(message, "Indexing error: {error_message}");
             }
@@ -178,8 +189,9 @@ impl fmt::Display for WaczError {
 impl Error for WaczError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::IndexingError(error) => return Some(error),
-            Self::DataPackageError(error) => return Some(error),
+            Self::WarcFileError(_) => return None,
+            Self::IndexingError(indexing_error) => return Some(indexing_error),
+            Self::DataPackageError(datapackage_error) => return Some(datapackage_error),
         }
     }
 }
