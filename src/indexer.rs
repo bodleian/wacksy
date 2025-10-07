@@ -1,7 +1,8 @@
 //! Reads the WARC file and composes a CDX(J) index.
 
-use std::ffi::OsStr;
 use std::fmt;
+use std::fs::File;
+use std::io::Read as _;
 use std::path::Path;
 use warc::{BufferedBody, Record, RecordType, WarcReader};
 
@@ -42,6 +43,29 @@ impl Index {
     /// when reading the WARC record will stop the indexer and propogate
     /// all the way up to the top.
     pub fn index_file(warc_file_path: &Path) -> Result<Self, IndexingError> {
+        impl Gzipped for Path {}
+        trait Gzipped {
+            /// A gzip archive starts with the magic number '1f8b' followed by
+            /// the compression flag which should be '8' for DEFLATE.
+            /// If the first three bytes of the file match this sequence then
+            /// it's probably a gzip file.
+            fn is_gzip(&self) -> bool
+            where
+                Self: AsRef<Path>,
+            {
+                // open the file and create a 3-byte buffer
+                let mut file = File::open(self).unwrap();
+                let mut buffer = [0; 3];
+
+                // read exactly 3 bytes into the buffer
+                file.read_exact(&mut buffer).unwrap();
+
+                // if the buffer matches this byte sequence then
+                // the expression is true
+                return buffer == [0x1f, 0x8B, 0x08];
+            }
+        }
+
         // this looping function accepts a generic type which
         // this allows us to pass in both gzipped and non-gzipped records
         fn loop_over_records<
@@ -110,7 +134,7 @@ impl Index {
             });
         }
 
-        if warc_file_path.extension() == Some(OsStr::new("gz")) {
+        if warc_file_path.is_gzip() {
             match WarcReader::from_path_gzip(warc_file_path) {
                 Ok(file_gzip) => {
                     let file_records = file_gzip.iter_records();
@@ -131,6 +155,7 @@ impl Index {
         }
     }
 }
+
 pub struct NumberOfRecordsRead(usize);
 impl fmt::Display for NumberOfRecordsRead {
     fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
