@@ -2,15 +2,14 @@ use crate::indexer::{
     RecordContentType, RecordStatus, RecordTimestamp, RecordUrl, indexing_errors::IndexingError,
 };
 use serde::Serialize;
-use short_uuid::ShortUuid;
 use std::fmt;
 use warc::{BufferedBody, Record, RecordType};
 
 /// A page which would make up a line in a pages.jsonl file.
 #[derive(Serialize)]
 pub struct PageRecord {
-    /// A [short uuid](https://github.com/radim10/short-uuid) to identify the page record
-    pub id: ShortUuid,
+    /// A unique incrementing counter to identify the page record
+    pub id: usize,
     /// The date and time when the web archive snapshot was created
     #[serde(rename = "ts")]
     pub timestamp: RecordTimestamp,
@@ -34,7 +33,7 @@ impl PageRecord {
     /// Returns an `UnindexableRecordType` error if the record is not
     /// a Warc `response`, `revisit`, or `resource`. Otherwise, returns
     /// corresponding errors for url, timestamp mime, or status fields.
-    pub fn new(record: &Record<BufferedBody>) -> Result<Self, IndexingError> {
+    pub fn new(record: &Record<BufferedBody>, record_count: usize) -> Result<Self, IndexingError> {
         let mime = RecordContentType::new(record)?;
         let status = RecordStatus::new(record)?;
 
@@ -52,7 +51,7 @@ impl PageRecord {
             && status == RecordStatus(200)
         {
             return Ok(Self {
-                id: ShortUuid::generate(),
+                id: record_count,
                 timestamp: RecordTimestamp::new(record)?, // when this gets serialised to json it prints the RFC-3339 formatted string, but, why? investigate.
                 url: RecordUrl::new(record)?,
             });
@@ -94,7 +93,7 @@ mod tests {
             .unwrap();
         let record = headers.add_body("HTTP/1.1 200\ncontent-type: text/html\n");
 
-        let generated_page_record = PageRecord::new(&record)?;
+        let generated_page_record = PageRecord::new(&record, 1)?;
         let instance: Value = serde_json::to_value(&generated_page_record)?;
 
         let schema: Value =

@@ -11,14 +11,13 @@
         },
         "ts": {
             "type": "string",
-            "description": "A timestamp, usually drawn from the WARC record timestamp, must be in RFC3339 format",
+            "description": "A timestamp, usually drawn from the WARC record timestamp, must be in RFC3339 format.",
             "format": "date-time"
         },
         "id": {
-            "type": "string",
-            "description": "A short uuid to identify the record",
-            "minLength": 1,
-            "maxLength": 128
+            "type": "integer",
+            "description": "A number to identify the record.",
+            "minimum": 1
         }
     },
     "required": [

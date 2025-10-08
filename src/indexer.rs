@@ -89,7 +89,7 @@ impl Index {
                                 // add it to the index
                                 cdxj_index.push(processed_record);
                                 // now try creating a page record
-                                match PageRecord::new(&record) {
+                                match PageRecord::new(&record, record_count) {
                                     Ok(processed_record) => {
                                         page_index.push(processed_record);
                                     }
