@@ -15,7 +15,7 @@ impl WarcFilename {
     /// # Errors
     ///
     /// Returns a `WarcFilenameError` error if the filename cannot be
-    /// inferred from the file path. Normally you should not hit this
+    /// inferred from the filepath. Normally you should not hit this
     /// error.
     pub fn new(
         record: &Record<BufferedBody>,
@@ -26,7 +26,7 @@ impl WarcFilename {
             return Ok(Self(record_filename.into_owned()));
         } else {
             // If no filename is found in the record
-            // we get the filename from the file path
+            // we get the filename from the filepath
             if let Some(warc_file_path) = warc_file_path.file_name() {
                 return Ok(Self(warc_file_path.to_string_lossy().to_string()));
             } else {

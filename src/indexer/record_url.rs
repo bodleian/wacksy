@@ -17,7 +17,7 @@ impl RecordUrl {
     ///
     /// Returns `RecordUrlError` if there is any problem parsing
     /// the url, this is a wrapper for `url::ParseError`.
-    /// Alternatively returns `ValueNotFound` if no `TargetURI` field
+    /// Alternatively, returns `ValueNotFound` if no `TargetURI` field
     /// is present in the WARC header.
     pub fn new(record: &Record<BufferedBody>) -> Result<Self, IndexingError> {
         if let Some(warc_header_url) = record.header(WarcHeader::TargetURI) {

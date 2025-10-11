@@ -40,13 +40,13 @@ impl Index {
     /// Returns a [file io error](IndexingError::WarcFileError) from
     /// `WarcReader::from_path`/`from_path_gzip` in case of any problem reading
     /// the WARC file. An [unrecoverable error](IndexingError::CriticalRecordError)
-    /// when reading the WARC record will stop the indexer and propogate
+    /// when reading the WARC record will stop the indexer and propagate
     /// all the way up to the top.
     pub fn index_file(warc_file_path: &Path) -> Result<Self, IndexingError> {
         impl Gzipped for Path {}
         trait Gzipped {
-            /// A gzip archive starts with the magic number '1f8b' followed by
-            /// the compression flag which should be '8' for DEFLATE.
+            /// A gzip archive starts with the magic number `1f8b` followed by
+            /// the compression flag which should be 8 for DEFLATE.
             /// If the first three bytes of the file match this sequence then
             /// it's probably a gzip file.
             fn is_gzip(&self) -> bool

@@ -48,7 +48,7 @@ pub struct DataPackage {
     pub created: String,
     /// The name of the software used to create the WACZ file, in this case `wacksy 0.1.0`.
     pub software: String,
-    /// List of file names, paths, sizes and fixity for all files contained in the WACZ.
+    /// List of file names, paths, sizes, and fixity for all files contained in the WACZ.
     pub resources: Vec<DataPackageResource>,
 }
 
@@ -139,7 +139,7 @@ impl DataPackage {
     /// # Digest datapackage
     ///
     /// Takes a `DataPackage` struct and returns a `DataPackageDigest`
-    /// containing an sha256 hash of the datapackage.
+    /// containing a Sha256 hash of the datapackage.
     ///
     /// # Errors
     ///

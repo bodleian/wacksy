@@ -37,9 +37,9 @@ impl PageRecord {
         let mime = RecordContentType::new(record)?;
         let status = RecordStatus::new(record)?;
 
-        // first check whether the record is either a response, revisit,
+        // First check whether the record is either a response, revisit,
         // resource, or metadata and check whether the record mime type
-        // refers to a web page
+        // refers to a web page.
         if [
             RecordType::Response,
             RecordType::Revisit,

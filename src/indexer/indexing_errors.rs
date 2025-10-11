@@ -20,7 +20,7 @@ pub enum IndexingError {
     UnindexableRecordType(warc::RecordType),
     /// could not read the WARC file
     WarcFileError(io::Error),
-    /// an unrecoverable error with a WARC record
+    /// An unrecoverable error with a WARC record
     /// which means the rest of the WARC file cannot be read
     /// this error wraps [`warc::Error`] and returns
     /// the record number and the byte offset of the

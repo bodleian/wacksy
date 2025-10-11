@@ -77,7 +77,7 @@ impl WACZ {
                 Err(indexing_error) => return Err(WaczError::IndexingError(indexing_error)),
             }
         } else {
-            // the file path doesn't exist so return with error
+            // the filepath doesn't exist so return with error
             let file_path_string = warc_file_path.to_string_lossy().to_string();
             return Err(WaczError::WarcFileError(file_path_string));
         }
