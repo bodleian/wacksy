@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1](https://github.com/bodleian/wacksy/compare/v0.1.0...v0.1.1) - 2025-09-30
 
-This first minor release includes a new API, made up of two functions: `from_file()` takes a WARC file, indexes it and produces a structured representation of a WACZ object, and `as_zip_archive()` takes that structured representation and writes it out to a zip archive.
+This first minor release includes a new API, made up of two functions:
+
+1. `from_file()` takes a WARC file, indexes it and produces a structured representation of a WACZ object.
+2. `as_zip_archive()` takes that structured representation and writes it out to a zip archive.
 
 > [!NOTE]
-> Despite the more serious committment to a stable API in this version, this library is still not ready for professional use. I'm still not sure the indexer is correctly calculating the byte offset of each record in the WARC file. Output WACZes do not replay properly with [ReplayWeb.page](https://replayweb.page/).
+> Despite the more serious commitment to a stable API in this version, this library is still not ready for professional use. I'm still not sure the indexer is correctly calculating the byte offset of each record in the WARC file. Output WACZes do not replay properly with [ReplayWeb.page](https://replayweb.page/).
 
-I've been trying to model the construction pattern to fit the conditions of the format. For example, all the resources in a collection must be defined in the datapackage, or a page record cannot be created without a corresponding CDX record. These conditions should be satisfied by a carefully ordered process, with each step flowing logically into the next. The indexer and the new API were (re)written with this goal in mind.
+I've been trying to model the construction pattern to fit the conditions of the format. For example, all the resources in a collection must be defined in the datapackage, or a page record cannot be created without a matching CDX record. These conditions should be satisfied by a carefully ordered process, with each step flowing logically into the next. The indexer and the new API were (re)written with this goal in mind.
 
 ### Pages.jsonl
 
@@ -28,7 +31,7 @@ Serialisation of values to JSON still feels too ✨magical✨ to me; I don't nec
 
 ### Fixes
 
-- *(indexer)* move WARC record counter forward by 1 because the iterator ennumeration is zero-indexed. Easy mistake.
+- *(indexer)* move WARC record counter forward by 1 because the iterator enumeration is zero-indexed. Easy mistake.
 
 ### Other
 
@@ -85,8 +88,8 @@ First time I've tried using type generics in Rust, the code is messy, but it wor
 
 ### Added
 
-- *(indexer)* Use type generics to eliminate code duplication when iterating through records, this finally gets rid of an awkward situation where I was having to maintain two separate iterators .
-- add pages indexer to wacz writer, with a struct for page records, this is the main thing in this release.
+- *(indexer)* Use type generics to eliminate code duplication when iterating through records, this finally gets rid of an awkward situation where I was having to maintain two separate iterators.
+- Add pages indexer to wacz writer, with a struct for page records, this is the main thing in this release.
 
 ### Fixed
 
@@ -99,29 +102,29 @@ First time I've tried using type generics in Rust, the code is messy, but it wor
 Lots more little documentation/readme changes and additions. Code refactoring, etc.
 
 - *(indexer)* use core instead of standard libraries for error formatting
-- add serde features to dependencies, update cargofile
+- Add serde features to dependencies, update cargofile.
 - *(datapackage)* move compose_datapackage into datapackage implementation
-- *(datapackage)* DataPackageResource::new now returns a result/error rather than panicking
+- *(datapackage)* `DataPackageResource::new` now returns a result/error rather than panicking
 - *(indexer)* use httparse to parse http status code from response and remove the happily redundant cut_http_headers_from_record function
 
 ## [0.0.1-beta](https://github.com/bodleian/wacksy/compare/v0.0.1-alpha...v0.0.1-beta) - 2025-05-16
 
 Work on this version was mostly refactoring, adding structured types and error handling, and some documentation (only just started).
 
-Still on my todo list is to use the indexer to also create pages.jsonl files.
+Still on my to-do list is to use the indexer to also create pages.jsonl files.
 
 ### Fixed
 
-- replace wrapping_add in loop counter with enumerate, closes #29
+- Replace wrapping_add in loop counter with enumerate, closes #29.
 - *(indexer)* return the same error message for gzipped and non-gzipped files. I have tried to simplify the code for processing both gzipped and non-gzipped files. There's still unnecessary duplication but it's the best I can do for the moment.
 
 ### Other
 
-- document some DataPackage structs, better documentation coming once this is properly finished!
-- as a style change, this now uses explicit returns everywhere, and I have set lints in cargo.toml to enforce this
-- *(indexer)* many of the index functons are now implemented on types. The completed index is returned *as a struct*, which has a display implementation to write it out to json(l).
-- *(datapackage)* propogate errors upwards, there are still some panics, but structured error handling is a lot more comprehensive now. Happy and unhappy paths are a little clearer to identify.
-- update README with link to a funny meme 🙂
+- Document some DataPackage structs, better documentation coming once this is properly finished!
+- As a style change, this now uses explicit returns everywhere, and I have set lints in cargo.toml to enforce this
+- *(indexer)* many of the index functions are now implemented on types. The completed index is returned *as a struct*, which has a display implementation to write it out to json.
+- *(datapackage)* propagate errors upwards, there are still some panics, but structured error handling is a lot more comprehensive now. Happy and unhappy paths are a little clearer to identify.
+- Update README with link to a funny meme 🙂
 
 ## [0.0.1-alpha](https://github.com/bodleian/wacksy/releases/tag/v0.0.1-alpha) - 2025-04-05
 
@@ -129,5 +132,5 @@ At this stage the library can read a WARC file to produce a CDXJ index, and a da
 
 ### Added
 
-- *(indexer)* types for DataPackage and DataPackageResource
-- *(indexer)* various types for CXDJIndexRecord
+- *(indexer)* types for `DataPackage` and `DataPackageResource`
+- *(indexer)* various types for `CXDJIndexRecord`
