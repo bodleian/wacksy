@@ -1,7 +1,1 @@
-wooooo
-
-wooooo
-
-weeeee
-
-wooooo
+line&&line&&multiline&string&&line
