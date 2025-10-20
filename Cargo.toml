@@ -5,6 +5,7 @@ edition = "2024"
 rust-version = "1.87"
 license = "MIT"
 repository = "https://github.com/bodleian/wacksy"
+documentation = "https://docs.rs/wacksy/latest/wacksy/"
 description = "Experimental library for writing WACZ achives."
 keywords = ["save-the-internet", "web-archive", "wacz", "warc", "cdxj"]
 categories = ["encoding"]
