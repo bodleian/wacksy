@@ -2,7 +2,6 @@ use std::{
     fs::File,
     io::{BufRead, BufReader, Read, Seek, SeekFrom},
     path::Path,
-    string,
 };
 
 fn main() {
@@ -14,17 +13,11 @@ fn read_file_loop() {
 
     for x in wooo.enumerate() {
         println!("{}", x.1);
-        if x.0 > 4 {
-            break;
-        }
     }
 
     struct TestFileIterator {
-        count: usize,
-        content: String,
         reader: BufReader<File>,
         offset: usize,
-        record_data: Vec<u8>,
     }
     impl TestFileIterator {
         fn new() -> TestFileIterator {
@@ -32,11 +25,8 @@ fn read_file_loop() {
             let file = File::open(path).unwrap();
 
             TestFileIterator {
-                count: 0,
                 reader: BufReader::new(file),
-                content: String::new(),
                 offset: 0,
-                record_data: vec![],
             }
         }
     }
@@ -49,33 +39,38 @@ fn read_file_loop() {
             reader
                 .seek(SeekFrom::Start(self.offset.try_into().unwrap())) // convert usize to u64
                 .unwrap();
+            // println!("offset is {}", self.offset);
             let mut data_buffer: Vec<u8> = vec![];
             loop {
+                // read until first '&' character
                 match reader.read_until(0x26, &mut data_buffer) {
                     Ok(bytes_read) => {
+                        // println!("read {bytes_read} bytes");
+                        if bytes_read == 0 {
+                            return None;
+                        }
                         let mut buf = [0; 1];
                         match reader.read_exact(&mut buf) {
                             Ok(_) => {
-                                if &buf == b"&" {
-                                    data_buffer.extend_from_slice(&buf);
-                                    self.record_data.extend_from_slice(&data_buffer);
-                                    let content = &self.record_data;
+                                if &buf != &[0x26; 1] {
                                     self.offset = self.offset + bytes_read + 1;
-                                    print!("found two &s, returning ");
-                                    return Some(String::from_utf8_lossy(&content).into_owned());
+                                    data_buffer.extend_from_slice(&buf);
                                 } else {
-                                    self.offset = self.offset + bytes_read;
-                                    self.record_data.extend_from_slice(&data_buffer);
+                                    self.offset = self.offset + bytes_read + 1;
+                                    // remove the extra byte from the data buffer
+                                    // before returning it
+                                    data_buffer.pop();
+                                    return Some(
+                                        String::from_utf8_lossy(&data_buffer).into_owned(),
+                                    );
                                 }
                             }
                             Err(_) => {
-                                println!("reached end of file");
-                                // reached end of the file
+                                self.offset = self.offset + bytes_read;
                                 return Some(String::from_utf8_lossy(&data_buffer).into_owned());
                             }
                         }
                     }
-
                     Err(_) => {
                         println!("ended!");
                         return None;
