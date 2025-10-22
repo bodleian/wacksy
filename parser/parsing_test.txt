@@ -1,1 +1,1 @@
-line&&line&&multiline&string&&line&&last&line
+&&line&&line&&multiline&string&&line&&last&line

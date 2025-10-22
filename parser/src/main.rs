@@ -11,7 +11,7 @@ fn main() {
 fn read_file_loop() {
     let wooo = TestFileIterator::new();
 
-    for x in wooo.enumerate() {
+    for x in wooo.enumerate().skip(1) {
         println!("{}", x.1);
     }
 
@@ -56,9 +56,10 @@ fn read_file_loop() {
                                     self.offset = self.offset + bytes_read + 1;
                                     data_buffer.extend_from_slice(&buf);
                                 } else {
-                                    self.offset = self.offset + bytes_read + 1;
+                                    self.offset = self.offset + bytes_read;
                                     // remove the extra byte from the data buffer
                                     // before returning it
+                                    data_buffer.insert(0, 0x26);
                                     data_buffer.pop();
                                     return Some(
                                         String::from_utf8_lossy(&data_buffer).into_owned(),
@@ -67,6 +68,7 @@ fn read_file_loop() {
                             }
                             Err(_) => {
                                 self.offset = self.offset + bytes_read;
+                                data_buffer.insert(0, 0x26);
                                 return Some(String::from_utf8_lossy(&data_buffer).into_owned());
                             }
                         }
