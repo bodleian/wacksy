@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.1...v0.2.0) - 2025-10-30
+
+### Fixed
+
+- check whether the warc file exists
+
+### Other
+
+- Cargo diet
+- add docs.rs link to cargofile
+- add surt test cases for RecordUrl
+- linting pass over changelog
+- remove surt-rs library
+- fix typos in comments
+- replace short uuids with a counter, closes #64
+- check whether warc file is gzipped by reading the first three bytes, closes #58
+- *(deps)* bump actions/setup-python from 5 to 6
+- don't link github usernames in changelog
+
 ## [0.1.1](https://github.com/bodleian/wacksy/compare/v0.1.0...v0.1.1) - 2025-09-30
 
 This first minor release includes a new API, made up of two functions:
