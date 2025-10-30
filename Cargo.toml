@@ -9,6 +9,7 @@ documentation = "https://docs.rs/wacksy/latest/wacksy/"
 description = "Experimental library for writing WACZ achives."
 keywords = ["save-the-internet", "web-archive", "wacz", "warc", "cdxj"]
 categories = ["encoding"]
+include = ["src/**/*", "LICENSE", "README.md"]
 
 [dependencies]
 chrono = { version = "0.4.41", features = ["alloc", "serde"] }
