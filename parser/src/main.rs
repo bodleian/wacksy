@@ -1,91 +1,88 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Read, Seek, SeekFrom},
+    io::{BufReader, Read as _, Seek as _, SeekFrom},
     path::Path,
 };
+
+use flate2::bufread::GzDecoder;
 
 fn main() {
     read_file_loop();
 }
 
 fn read_file_loop() {
-    let wooo = TestFileIterator::new();
-
-    for x in wooo.enumerate().skip(1) {
-        println!("{}", x.1);
-    }
-
-    struct TestFileIterator {
+    struct WarcReader {
         reader: BufReader<File>,
-        offset: usize,
+        byte_offset: usize,
+        file_size: usize,
     }
-    impl TestFileIterator {
-        fn new() -> TestFileIterator {
-            let path = Path::new("parser/parsing_test.txt");
-            let file = File::open(path).unwrap();
 
-            TestFileIterator {
+    impl WarcReader {
+        fn new() -> Self {
+            let path = Path::new("parser/example.warc.gz");
+            let file = File::open(path).unwrap();
+            let file_size = usize::try_from(file.metadata().unwrap().len()).unwrap();
+
+            return Self {
                 reader: BufReader::new(file),
-                offset: 0,
-            }
+                byte_offset: 0,
+                file_size,
+            };
         }
     }
 
-    impl Iterator for TestFileIterator {
+    impl Iterator for WarcReader {
         type Item = String;
 
         fn next(&mut self) -> Option<Self::Item> {
-            let reader = &mut self.reader;
-            reader
-                .seek(SeekFrom::Start(self.offset.try_into().unwrap())) // convert usize to u64
-                .unwrap();
-            // println!("offset is {}", self.offset);
-            let mut data_buffer: Vec<u8> = vec![];
-            loop {
-                // read until first '&' character
-                match reader.read_until(0x26, &mut data_buffer) {
-                    Ok(bytes_read) => {
-                        // println!("read {bytes_read} bytes");
-                        if bytes_read == 0 {
-                            return None;
-                        }
-                        let mut buf = [0; 1];
-                        match reader.read_exact(&mut buf) {
-                            Ok(_) => {
-                                if &buf != &[0x26; 1] {
-                                    self.offset = self.offset + bytes_read + 1;
-                                    data_buffer.extend_from_slice(&buf);
-                                } else {
-                                    self.offset = self.offset + bytes_read;
-                                    // remove the extra byte from the data buffer
-                                    // before returning it
-                                    data_buffer.insert(0, 0x26);
-                                    data_buffer.pop();
-                                    return Some(
-                                        String::from_utf8_lossy(&data_buffer).into_owned(),
-                                    );
-                                }
-                            }
-                            Err(_) => {
-                                self.offset = self.offset + bytes_read;
-                                data_buffer.insert(0, 0x26);
-                                return Some(String::from_utf8_lossy(&data_buffer).into_owned());
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        println!("ended!");
-                        return None;
-                    }
-                }
+            if self.file_size > self.byte_offset {
+                println!("reading from byte {}", self.byte_offset);
+
+                // Seek to the byte offset and start reading
+                // from there onwards.
+                let reader = &mut self.reader;
+                reader
+                    .seek(SeekFrom::Start(self.byte_offset.try_into().unwrap())) // convert usize to u64
+                    .unwrap();
+
+                // Wrap the reader in a GzDecoder and instantiate
+                // an empty string to copy data into.
+                let mut gz = GzDecoder::new(reader);
+                let mut decode_string = String::with_capacity(2048);
+
+                // Read bytes from the decoder to the string,
+                // and bytes_out is the number of bytes produced
+                // after decompression.
+                let bytes_out = gz.read_to_string(&mut decode_string).unwrap();
+                println!("decoded       {bytes_out} bytes");
+
+                // Find the position of the reader in the file after decompression.
+                let file_position =
+                    usize::try_from(gz.get_mut().stream_position().unwrap()).unwrap();
+
+                // The number of bytes read will be the position of
+                // the reader in the file, minus the offset it read from.
+                let bytes_read = file_position - self.byte_offset;
+                println!("read in       {bytes_read} bytes");
+
+                // Now add the bytes_read back to the offset
+                // for the next record in the file
+                self.byte_offset += bytes_read;
+
+                println!("offset is now {}", self.byte_offset);
+                println!("file size is  {}", self.file_size);
+
+                return Some(decode_string);
+            } else {
+                // If the byte offset is greater than the file size,
+                // we're at the end of the file, so return none
+                // and end the iterator.
+                return None;
             }
         }
     }
+
+    for gzip_member in WarcReader::new() {
+        println!("{gzip_member}");
+    }
 }
-
-// 1. Check the first bytes of the file, if we're dealing with
-// GZIP then read through until the next GZIP member.
-// 2. Decompress that set of bytes.
-// 3. Parse etc.
-
-// https://users.rust-lang.org/t/using-read-until-for-a-sequence-of-bytes/116935/2
