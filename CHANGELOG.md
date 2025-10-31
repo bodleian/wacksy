@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/bodleian/wacksy/compare/v0.1.2...v0.1.3) - 2025-10-31
+
+### Other
+
+- bump version 0.1.3 across the code
+
 After reading about the [Lean Crate Initiative](https://github.com/the-lean-crate/criner), I edited the Cargo manifest to [include](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields) only the files necessary for building the crate when publishing.
 
 Added a small function to read the Gzip [magic number](https://thuc.space/posts/gzip/) (`0x1f0x8b`) at the beginning of the file, to check whether or not it's a Gzip archive. This is going to be part of a bigger rewrite of the WARC reading code which I'm working on in a branch.
