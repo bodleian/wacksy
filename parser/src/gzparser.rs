@@ -13,7 +13,7 @@ fn main() {
 fn read_file_loop() {
     struct WarcReader {
         reader: BufReader<File>,
-        byte_offset: usize,
+        file_offset: usize,
         file_size: usize,
     }
 
@@ -25,7 +25,7 @@ fn read_file_loop() {
 
             return Self {
                 reader: BufReader::new(file),
-                byte_offset: 0,
+                file_offset: 0,
                 file_size,
             };
         }
@@ -35,14 +35,14 @@ fn read_file_loop() {
         type Item = String;
 
         fn next(&mut self) -> Option<Self::Item> {
-            if self.file_size > self.byte_offset {
+            if self.file_size > self.file_offset {
                 println!("reading from byte {}", self.byte_offset);
 
                 // Seek to the byte offset and start reading
                 // from there onwards.
                 let reader = &mut self.reader;
                 reader
-                    .seek(SeekFrom::Start(self.byte_offset.try_into().unwrap())) // convert usize to u64
+                    .seek(SeekFrom::Start(self.file_offset.try_into().unwrap())) // convert usize to u64
                     .unwrap();
 
                 // Wrap the reader in a GzDecoder and instantiate
@@ -62,21 +62,21 @@ fn read_file_loop() {
 
                 // The number of bytes read will be the position of
                 // the reader in the file, minus the offset it read from.
-                let bytes_read = file_position - self.byte_offset;
+                let bytes_read = file_position - self.file_offset;
                 println!("read in       {bytes_read} bytes");
 
                 // Now add the bytes_read back to the offset
                 // for the next record in the file
-                self.byte_offset += bytes_read;
+                self.file_offset += bytes_read;
 
-                println!("offset is now {}", self.byte_offset);
+                println!("offset is now {}", self.file_offset);
                 println!("file size is  {}", self.file_size);
 
                 return Some(decode_string);
             } else {
                 // If the byte offset is greater than the file size,
                 // we're at the end of the file, so return none
-                // and end the iterator.
+                // and close the iterator.
                 return None;
             }
         }
