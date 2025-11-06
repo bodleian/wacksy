@@ -10,7 +10,9 @@ fn main() {
 }
 
 fn read_file_loop() {
-    for warc_record in WarcReader::new() {
+    let warc_file_path = std::path::Path::new("parser/example.warc");
+
+    for warc_record in WarcReader::new(warc_file_path) {
         println!("{warc_record:?}");
     }
 
@@ -20,16 +22,15 @@ fn read_file_loop() {
         file_size: usize,
     }
     impl WarcReader {
-        fn new() -> Self {
-            let path = Path::new("parser/example.warc");
-            let file = File::open(path).unwrap();
+        fn new(warc_file_path: &Path) -> Self {
+            let file = File::open(warc_file_path).unwrap();
             let file_size = usize::try_from(file.metadata().unwrap().len()).unwrap();
 
             return Self {
                 reader: BufReader::new(file),
                 file_offset: 0,
                 file_size,
-            };
+            }
         }
     }
 
