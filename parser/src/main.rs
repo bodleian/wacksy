@@ -44,7 +44,7 @@ enum WarcRecordType {
 }
 
 #[derive(Debug)]
-struct WarcHeaderParsed {
+struct ParsedIndexRecord {
     content_length: Option<usize>,
     header_length: usize,
     digest: String,
@@ -56,7 +56,7 @@ struct WarcHeaderParsed {
     http_status_code: Option<usize>,
     mime_type: Option<String>,
 }
-impl WarcHeaderParsed {
+impl ParsedIndexRecord {
     const fn new() -> Self {
         return Self {
             content_length: None,
@@ -74,7 +74,7 @@ impl WarcHeaderParsed {
 }
 
 impl Iterator for WarcReader {
-    type Item = WarcHeaderParsed;
+    type Item = ParsedIndexRecord;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.file_size > self.file_offset {
@@ -87,60 +87,23 @@ impl Iterator for WarcReader {
                 .unwrap();
             println!("reading from {} bytes", self.file_offset);
 
-            let header_buffer = read_warc_header(reader)?;
+            let warc_header_buffer = read_header_block(reader)?;
+            let mut parsed_header = ParsedIndexRecord::new();
+
+            parsed_header.header_length = warc_header_buffer.len();
+            println!("header was {} bytes long", parsed_header.header_length);
 
             // First, check whether the first 8 bytes of the record
             // match "WARC/1.1".
-            if header_buffer
-                .get(..8)
-                .is_some_and(|record_header| return record_header == "WARC/1.1")
-            {
-                // Iterate over the lines in the header, skipping
-                // the first one as that's the WARC declaration.
-                let header_iterator = header_buffer.trim().lines();
-
-                let mut parsed_header = WarcHeaderParsed::new();
-
-                // Go over each field in the header.
-                for named_field in header_iterator.skip(1) {
-                    let split_field = named_field.split_once(':').unwrap();
-                    let key = split_field.0.to_ascii_lowercase();
-                    let value = split_field.1.trim();
-                    // parse the key, update the header
-                    parsed_header = parse_key(&key, value, parsed_header);
-                }
-
-                parsed_header.header_length = header_buffer.len();
-                println!("header was {} bytes long", parsed_header.header_length);
+            if warc_header_buffer.starts_with("WARC/1.1") {
+                parsed_header = process_headers(parsed_header, &warc_header_buffer);
 
                 // Now that we've parsed the header, add the header length
                 // and content length to the file offset. Also add 4 bytes
                 // to account for the newlines separating each record.
-                self.file_offset += header_buffer.len() + parsed_header.content_length.unwrap() + 4;
+                self.file_offset +=
+                    parsed_header.header_length + parsed_header.content_length.unwrap() + 4;
                 println!("next record offset is {}", self.file_offset);
-
-                let mut http_header_buffer = String::with_capacity(2048);
-                let mut found_http_headers = false;
-
-                while !found_http_headers {
-                    // Read line-by-line from the offset in a loop
-                    // and stop when the reader two newlines.
-                    let bytes_read = reader.read_line(&mut http_header_buffer).unwrap();
-
-                    if bytes_read == 0 {
-                        return None;
-                    }
-
-                    // If the line is empty and consists only of newline
-                    // characters, then we've reached the end of the
-                    // header block.
-                    if bytes_read == 2 {
-                        let last_two_chars = http_header_buffer.len() - 2;
-                        if &http_header_buffer[last_two_chars..] == "\r\n" {
-                            found_http_headers = true;
-                        }
-                    }
-                }
 
                 // If both of these conditions are met,
                 // the record contains an HTTP resource.
@@ -151,32 +114,13 @@ impl Iterator for WarcReader {
                 .contains(&parsed_header.record_type)
                     && parsed_header.is_http
                 {
-                    // Get a slice between 9 and 12 bytes in,
-                    // this should be the HTTP status code.
-                    let raw_status_code = http_header_buffer.get(9..12).unwrap();
-                    parsed_header.http_status_code = Some(
-                        // TODO! Return 'None' or 'Error' if this doesn't work.
-                        raw_status_code.parse::<usize>().unwrap(),
-                    );
-
-                    // Iterate over the lines in the HTTP header.
-                    let http_header_iterator = http_header_buffer.trim().lines();
-
-                    // Go over each field in the header to find the content-type
-                    for http_field in http_header_iterator.skip(1) {
-                        let split_field = http_field.split_once(':').unwrap();
-                        let key = split_field.0.to_ascii_lowercase();
-                        let value = split_field.1.trim();
-
-                        if key.as_str() == "content-type" {
-                            parsed_header.mime_type = Some(value.to_owned());
-                        }
-                    }
+                    let http_header_buffer = read_header_block(reader)?;
+                    parsed_header = process_headers(parsed_header, &http_header_buffer);
                 }
 
                 return Some(parsed_header);
             } else {
-                // If the first 8 bytes of the header do not match "WARC/1.1"
+                // If the header does not start with "WARC/1.1"
                 // then return none. This should be an error.
                 return None;
             }
@@ -189,10 +133,8 @@ impl Iterator for WarcReader {
     }
 }
 
-fn read_warc_header(reader: &mut BufReader<File>) -> Option<String> {
-    let mut header_buffer = String::with_capacity(1366);
-    let mut found_headers = false;
-    // This while block was adapted from the warc_reader.rs
+fn read_header_block(reader: &mut BufReader<File>) -> Option<String> {
+    // This function was adapted from the warc_reader.rs
     // module in the warc library at https://github.com/jedireza/warc
     //
     // MIT License
@@ -217,13 +159,15 @@ fn read_warc_header(reader: &mut BufReader<File>) -> Option<String> {
     // CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
     // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    let mut header_buffer = String::with_capacity(2048);
+    let mut found_headers = false;
+
     while !found_headers {
         // Read line-by-line from the offset in a loop
         // and stop when the reader two newlines.
         let bytes_read = reader.read_line(&mut header_buffer).unwrap();
 
-        // If bytes_read is zero, we've reached the end of the file.
-        // Return none from the function.
         if bytes_read == 0 {
             return None;
         }
@@ -241,45 +185,93 @@ fn read_warc_header(reader: &mut BufReader<File>) -> Option<String> {
     return Some(header_buffer);
 }
 
-fn parse_key(key: &str, value: &str, mut parsed_header: WarcHeaderParsed) -> WarcHeaderParsed {
-    match key {
-        "content-length" => {
-            parsed_header.content_length = Some(value.parse::<usize>().unwrap());
-        }
-        "warc-payload-digest" => {
-            parsed_header.digest = String::from_str(value).unwrap();
-        }
-        "warc-date" => {
-            parsed_header.timestamp = String::from_str(value).unwrap();
-        }
+fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> ParsedIndexRecord {
+    #[derive(PartialEq)]
+    enum HeaderType {
+        Warc,
+        Http,
+    }
 
-        "warc-target-uri" => {
-            parsed_header.url = String::from_str(value).unwrap();
-        }
-        "warc-type" => {
-            println!("warc type is {value}");
-            parsed_header.record_type = match value {
-                "response" => Some(WarcRecordType::Response),
-                "revisit" => Some(WarcRecordType::Revisit),
-                "resource" => Some(WarcRecordType::Resource),
-                "metadata" => Some(WarcRecordType::Metadata),
-                // Should probably return with a defined
-                // error if the record type is unparseable
-                _ => None,
-            };
-        }
-        "content-type" => {
-            if value.get(..16).is_some_and(|truncated_content_type| {
-                return truncated_content_type == "application/http";
-            }) {
-                // If the first 16 characters of the content type
-                // match this then it's an HTTP resource
-                parsed_header.is_http = true;
+    // The first four characters of the buffer should be
+    // either "WARC" or "HTTP".
+    let header_first_line = buffer.get(..4).unwrap();
+    let header_type = match header_first_line {
+        "WARC" => HeaderType::Warc,
+        "HTTP" => HeaderType::Http,
+        &_ => todo!("Return an error if the first line is not WARC or HTTP"),
+    };
+
+    if header_type == HeaderType::Http {
+        // Get a slice between 9 and 12 bytes in,
+        // this should be the HTTP status code.
+        let raw_status_code = buffer.get(9..12).unwrap();
+        parsed_header.http_status_code = Some(
+            // TODO! Return 'None' or 'Error' if this doesn't work.
+            raw_status_code.parse::<usize>().unwrap(),
+        );
+    }
+
+    // Iterate over the lines in the header block, skipping
+    // the first one as that's the WARC or HTTP declaration.
+    let header_iterator = buffer.trim().lines();
+
+    // Go over each field in the header to find the content-type.
+    for header_field in header_iterator.skip(1) {
+        let split_field = header_field.split_once(':').unwrap();
+        let key = split_field.0.to_ascii_lowercase();
+        let value = split_field.1.trim();
+
+        match header_type {
+            HeaderType::Warc => {
+                match key.as_str() {
+                    "content-length" => {
+                        parsed_header.content_length = Some(value.parse::<usize>().unwrap());
+                    }
+                    "warc-payload-digest" => {
+                        parsed_header.digest = String::from_str(value).unwrap();
+                    }
+                    "warc-date" => {
+                        parsed_header.timestamp = String::from_str(value).unwrap();
+                    }
+
+                    "warc-target-uri" => {
+                        parsed_header.url = String::from_str(value).unwrap();
+                    }
+                    "warc-type" => {
+                        println!("warc type is {value}");
+                        parsed_header.record_type = match value {
+                            "response" => Some(WarcRecordType::Response),
+                            "revisit" => Some(WarcRecordType::Revisit),
+                            "resource" => Some(WarcRecordType::Resource),
+                            "metadata" => Some(WarcRecordType::Metadata),
+                            // Should probably return with a defined
+                            // error if the record type is unparseable
+                            _ => None,
+                        };
+                    }
+                    "content-type" => {
+                        if value.get(..16).is_some_and(|truncated_content_type| {
+                            return truncated_content_type == "application/http";
+                        }) {
+                            // If the first 16 characters of the content type
+                            // match this then it's an HTTP resource
+                            parsed_header.is_http = true;
+                        }
+                    }
+                    "warc-resource-type" => parsed_header.is_page = true,
+                    _ => {
+                        // Do nothing?
+                        continue;
+                    }
+                }
             }
-        }
-        "warc-resource-type" => parsed_header.is_page = true,
-        _ => {
-            // Do nothing?
+            // If this is an HTTP header, the content-type refers to the
+            // response body, and we want to get that.
+            HeaderType::Http => {
+                if &key == "content-type" {
+                    parsed_header.mime_type = Some(value.to_owned());
+                }
+            }
         }
     }
     return parsed_header;
