@@ -6,14 +6,16 @@ use std::{
 };
 
 fn main() {
-    read_file_loop();
+    indexer();
 }
 
-fn read_file_loop() {
+fn indexer() {
     let warc_file_path = std::path::Path::new("parser/example.warc");
 
     for warc_record in WarcReader::new(warc_file_path) {
-        println!("{warc_record:?}");
+        if warc_record.is_page {
+            println!("{warc_record:?}");
+        }
     }
 }
 
@@ -21,16 +23,24 @@ struct WarcReader {
     reader: BufReader<File>,
     file_offset: usize,
     file_size: usize,
+    file_name: String,
 }
 impl WarcReader {
     fn new(warc_file_path: &Path) -> Self {
         let file = File::open(warc_file_path).unwrap();
         let file_size = usize::try_from(file.metadata().unwrap().len()).unwrap();
+        let file_name = warc_file_path
+            .file_name()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap();
 
         return Self {
             reader: BufReader::new(file),
             file_offset: 0,
             file_size,
+            file_name,
         };
     }
 }
@@ -55,6 +65,7 @@ struct ParsedIndexRecord {
     is_http: bool,
     http_status_code: Option<usize>,
     mime_type: Option<String>,
+    file_name: String,
 }
 impl ParsedIndexRecord {
     const fn new() -> Self {
@@ -69,6 +80,7 @@ impl ParsedIndexRecord {
             is_http: false,
             http_status_code: None,
             mime_type: None,
+            file_name: String::new(),
         };
     }
 }
@@ -77,6 +89,10 @@ impl Iterator for WarcReader {
     type Item = ParsedIndexRecord;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let mut parsed_header = ParsedIndexRecord::new();
+        // Copy the warc file name from the reader into the parsed header.
+        parsed_header.file_name.clone_from(&self.file_name);
+
         if self.file_size > self.file_offset {
             // Seek to the byte offset and start reading
             // from there onwards.
@@ -88,7 +104,6 @@ impl Iterator for WarcReader {
             println!("reading from {} bytes", self.file_offset);
 
             let warc_header_buffer = read_header_block(reader)?;
-            let mut parsed_header = ParsedIndexRecord::new();
 
             parsed_header.header_length = warc_header_buffer.len();
             println!("header was {} bytes long", parsed_header.header_length);
@@ -233,7 +248,6 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
                     "warc-date" => {
                         parsed_header.timestamp = String::from_str(value).unwrap();
                     }
-
                     "warc-target-uri" => {
                         parsed_header.url = String::from_str(value).unwrap();
                     }
@@ -258,7 +272,6 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
                             parsed_header.is_http = true;
                         }
                     }
-                    "warc-resource-type" => parsed_header.is_page = true,
                     _ => {
                         // Do nothing?
                         continue;
@@ -273,6 +286,17 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
                 }
             }
         }
+    }
+
+    // We additionally want to know, if the content-type
+    // is "text/html", and the status code was successful,
+    // set the is_page value to true.
+    if parsed_header.mime_type == Some("text/html".to_owned())
+        && parsed_header
+            .http_status_code
+            .is_some_and(|status_code| return (200..299).contains(&status_code))
+    {
+        parsed_header.is_page = true;
     }
     return parsed_header;
 }
