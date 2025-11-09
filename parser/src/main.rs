@@ -13,10 +13,82 @@ fn indexer() {
     let warc_file_path = std::path::Path::new("parser/example.warc");
 
     for warc_record in WarcReader::new(warc_file_path) {
-        if warc_record.is_page {
-            println!("{warc_record:?}");
+        match CDXJIndexRecord::try_from(&warc_record) {
+            Ok(cdxj_record) => {
+                println!("{:?}", cdxj_record);
+                if warc_record.is_page {
+                    println!("{:?}", &warc_record);
+                }
+            }
+            Err(error) => {
+                println!("{error}");
+            }
         }
     }
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+struct CDXJIndexRecord {
+    /// The date and time when the web archive snapshot was created
+    timestamp: String,
+    /// Sort-friendly formatted URL
+    searchable_url: String,
+    /// The URL that was archived
+    url: String,
+    /// A cryptographic hash for the HTTP response payload       
+    digest: String,
+    /// The media type for the response payload
+    mime: String,
+    /// The WARC file where the WARC record is located
+    filename: String,
+    /// The byte offset for the WARC record
+    offset: usize,
+    /// The length in bytes of the WARC record
+    length: usize,
+    // The HTTP status code for the HTTP response
+    status: usize,
+}
+impl TryFrom<&ParsedIndexRecord> for CDXJIndexRecord {
+    /// # Create CDXJ index record
+    fn try_from(index_record: &ParsedIndexRecord) -> Result<Self, Self::Error> {
+        if index_record.record_type.is_some() {
+            let mut local_record = ParsedIndexRecord::new();
+            local_record.clone_from(index_record);
+
+            let searchable_url = create_surt(&local_record.url);
+
+            return Ok(Self {
+                timestamp: local_record.timestamp,
+                url: local_record.url,
+                searchable_url,
+                digest: local_record.digest,
+                mime: local_record.mime_type,
+                filename: local_record.file_name,
+                offset: local_record.offset,
+                length: local_record.content_length,
+                status: local_record.http_status_code,
+            });
+        } else {
+            return Err("could not compose CDXJ record from parsed index");
+        }
+    }
+
+    type Error = &'static str;
+}
+
+fn create_surt(url: &str) -> String {
+    let url_without_protocol = match url {
+        url if url.starts_with("https://") => url.get(8..),
+        url if url.starts_with("http://") => url.get(7..),
+        _ => None,
+    }
+    .unwrap();
+    let url_split = url_without_protocol.split_once('/').unwrap();
+    let mut host: Vec<&str> = url_split.0.split('.').collect();
+    host.reverse();
+    let host_reversed = host.join(",");
+    return format!("{host_reversed})/{}", url_split.1);
 }
 
 struct WarcReader {
@@ -29,6 +101,7 @@ impl WarcReader {
     fn new(warc_file_path: &Path) -> Self {
         let file = File::open(warc_file_path).unwrap();
         let file_size = usize::try_from(file.metadata().unwrap().len()).unwrap();
+        // Define the filename, to pass into each record.
         let file_name = warc_file_path
             .file_name()
             .unwrap()
@@ -45,7 +118,7 @@ impl WarcReader {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum WarcRecordType {
     Response,
     Revisit,
@@ -53,9 +126,10 @@ enum WarcRecordType {
     Metadata,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ParsedIndexRecord {
-    content_length: Option<usize>,
+    offset: usize,
+    content_length: usize,
     header_length: usize,
     digest: String,
     timestamp: String,
@@ -63,14 +137,15 @@ struct ParsedIndexRecord {
     url: String,
     is_page: bool,
     is_http: bool,
-    http_status_code: Option<usize>,
-    mime_type: Option<String>,
+    http_status_code: usize,
+    mime_type: String,
     file_name: String,
 }
 impl ParsedIndexRecord {
     const fn new() -> Self {
         return Self {
-            content_length: None,
+            offset: 0,
+            content_length: 0,
             header_length: 0,
             digest: String::new(),
             timestamp: String::new(),
@@ -78,8 +153,8 @@ impl ParsedIndexRecord {
             url: String::new(),
             is_page: false,
             is_http: false,
-            http_status_code: None,
-            mime_type: None,
+            http_status_code: 0,
+            mime_type: String::new(),
             file_name: String::new(),
         };
     }
@@ -90,8 +165,8 @@ impl Iterator for WarcReader {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut parsed_header = ParsedIndexRecord::new();
-        // Copy the warc file name from the reader into the parsed header.
-        parsed_header.file_name.clone_from(&self.file_name);
+        parsed_header.offset = self.file_offset;
+        self.file_name.clone_into(&mut parsed_header.file_name);
 
         if self.file_size > self.file_offset {
             // Seek to the byte offset and start reading
@@ -116,8 +191,7 @@ impl Iterator for WarcReader {
                 // Now that we've parsed the header, add the header length
                 // and content length to the file offset. Also add 4 bytes
                 // to account for the newlines separating each record.
-                self.file_offset +=
-                    parsed_header.header_length + parsed_header.content_length.unwrap() + 4;
+                self.file_offset += parsed_header.header_length + parsed_header.content_length + 4;
                 println!("next record offset is {}", self.file_offset);
 
                 // If both of these conditions are met,
@@ -220,10 +294,9 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
         // Get a slice between 9 and 12 bytes in,
         // this should be the HTTP status code.
         let raw_status_code = buffer.get(9..12).unwrap();
-        parsed_header.http_status_code = Some(
+        parsed_header.http_status_code = 
             // TODO! Return 'None' or 'Error' if this doesn't work.
-            raw_status_code.parse::<usize>().unwrap(),
-        );
+            raw_status_code.parse::<usize>().unwrap();
     }
 
     // Iterate over the lines in the header block, skipping
@@ -240,7 +313,7 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
             HeaderType::Warc => {
                 match key.as_str() {
                     "content-length" => {
-                        parsed_header.content_length = Some(value.parse::<usize>().unwrap());
+                        parsed_header.content_length = value.parse::<usize>().unwrap();
                     }
                     "warc-payload-digest" => {
                         parsed_header.digest = String::from_str(value).unwrap();
@@ -282,7 +355,7 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
             // response body, and we want to get that.
             HeaderType::Http => {
                 if &key == "content-type" {
-                    parsed_header.mime_type = Some(value.to_owned());
+                    parsed_header.mime_type = value.to_owned();
                 }
             }
         }
@@ -291,11 +364,9 @@ fn process_headers(mut parsed_header: ParsedIndexRecord, buffer: &str) -> Parsed
     // We additionally want to know, if the content-type
     // is "text/html", and the status code was successful,
     // set the is_page value to true.
-    if parsed_header.mime_type == Some("text/html".to_owned())
-        && parsed_header
-            .http_status_code
-            .is_some_and(|status_code| return (200..299).contains(&status_code))
-    {
+    if parsed_header.mime_type == "text/html".to_owned()
+        && (200..299).contains(&parsed_header
+            .http_status_code)    {
         parsed_header.is_page = true;
     }
     return parsed_header;
