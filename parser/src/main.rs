@@ -1,6 +1,7 @@
+use flate2::bufread::GzDecoder;
 use std::{
     fs::File,
-    io::{BufRead as _, BufReader, Seek as _, SeekFrom},
+    io::{BufRead, BufReader, Read as _, Seek as _, SeekFrom},
     path::Path,
     str::FromStr as _,
 };
@@ -54,7 +55,7 @@ fn to_pages_json_string(index: &[IndexRecord]) -> String {
 }
 
 fn indexer() -> Vec<IndexRecord> {
-    let warc_file_path = std::path::Path::new("parser/example.warc");
+    let warc_file_path = std::path::Path::new("parser/example.warc.gz");
     let mut index = Vec::with_capacity(512);
 
     for index_record in WarcReader::new(warc_file_path) {
@@ -130,11 +131,18 @@ struct WarcReader {
     file_offset: usize,
     file_size: usize,
     file_name: String,
+    is_gzip: bool,
 }
 impl WarcReader {
     fn new(warc_file_path: &Path) -> Self {
         let file = File::open(warc_file_path).unwrap();
         let file_size = usize::try_from(file.metadata().unwrap().len()).unwrap();
+
+        // Check whether the warc is gzipped
+        let is_gzip = warc_file_path
+            .extension()
+            .is_some_and(|extension| return extension == "gz");
+
         // Define the filename, to pass into each record.
         let file_name = warc_file_path
             .file_name()
@@ -148,6 +156,7 @@ impl WarcReader {
             file_offset: 0,
             file_size,
             file_name,
+            is_gzip,
         };
     }
 }
@@ -155,9 +164,10 @@ impl Iterator for WarcReader {
     type Item = IndexRecord;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut parsed_header = IndexRecord::new();
-        parsed_header.offset = self.file_offset;
-        self.file_name.clone_into(&mut parsed_header.file_name);
+        let mut parsed_record = IndexRecord::new();
+
+        parsed_record.offset = self.file_offset;
+        self.file_name.clone_into(&mut parsed_record.file_name);
 
         if self.file_size > self.file_offset {
             // Seek to the byte offset and start reading
@@ -168,42 +178,99 @@ impl Iterator for WarcReader {
             reader
                 .seek(SeekFrom::Start(self.file_offset.try_into().unwrap())) // convert usize to u64
                 .unwrap();
+            if self.is_gzip {
+                // Wrap the reader in a GzDecoder and instantiate
+                // an empty string to copy data into.
+                let mut decoder = GzDecoder::new(reader);
+                let mut byte_buffer = Vec::with_capacity(2048);
 
-            // Read through the WARC header and return a string
-            let warc_header_buffer = read_header_block(reader)?;
+                // Read bytes from the decoder to a byte vector.
+                decoder.read_to_end(&mut byte_buffer).unwrap();
 
-            // Set the header length
-            parsed_header.header_length = warc_header_buffer.len();
+                // Find the position of the reader in the file after decompression.
+                let file_position =
+                    usize::try_from(decoder.get_mut().stream_position().unwrap()).unwrap();
 
-            // First, check whether the first 8 bytes of the record
-            // match "WARC/1.1".
-            if warc_header_buffer.starts_with("WARC/1.1") {
-                parsed_header = process_headers(parsed_header, &warc_header_buffer);
+                // The number of bytes read will be the position of
+                // the reader in the file, minus the offset it read from.
+                let bytes_read = file_position - self.file_offset;
 
-                // Now that we've parsed the header, add the header length
-                // and content length to the file offset. Also add 4 bytes
-                // to account for the newlines separating each record. The
-                // new file offset should now be at the start of the next record.
-                self.file_offset += parsed_header.header_length + parsed_header.content_length + 4;
+                // Now add the bytes_read back to the offset
+                // for the next record in the file
+                self.file_offset += bytes_read;
 
-                // If both of these conditions are met,
-                // the record contains an HTTP resource.
-                if [
-                    Some(WarcRecordType::Response),
-                    Some(WarcRecordType::Revisit),
-                ]
-                .contains(&parsed_header.record_type)
-                    && parsed_header.is_http
-                {
-                    let http_header_buffer = read_header_block(reader)?;
-                    parsed_header = process_headers(parsed_header, &http_header_buffer);
+                // A byte slice has a Read trait, and can be passed into
+                // read_header_block().
+                let mut byte_reader = byte_buffer.as_slice();
+
+                let warc_header_buffer = read_header_block(&mut byte_reader)?;
+
+                // Set the header length
+                parsed_record.header_length = warc_header_buffer.len();
+
+                // First, check whether the first 8 bytes of the record
+                // match "WARC/1.1".
+                if warc_header_buffer.starts_with("WARC/1.1") {
+                    parsed_record = process_headers(parsed_record, &warc_header_buffer);
+
+                    // If both of these conditions are met,
+                    // the record contains an HTTP resource.
+                    if [
+                        Some(WarcRecordType::Response),
+                        Some(WarcRecordType::Revisit),
+                    ]
+                    .contains(&parsed_record.record_type)
+                        && parsed_record.is_http
+                    {
+                        let http_header_buffer = read_header_block(&mut byte_reader)?;
+                        parsed_record = process_headers(parsed_record, &http_header_buffer);
+                    }
+                    return Some(parsed_record);
+                } else {
+                    // If the header does not start with "WARC/1.1"
+                    // then return none. This should be an error.
+                    return None;
                 }
-
-                return Some(parsed_header);
             } else {
-                // If the header does not start with "WARC/1.1"
-                // then return none. This should be an error.
-                return None;
+                // This could be broken into a separate parse_header function.
+
+                // Read through the WARC header and return a string
+                let warc_header_buffer = read_header_block(reader)?;
+
+                // Set the header length
+                parsed_record.header_length = warc_header_buffer.len();
+
+                // First, check whether the first 8 bytes of the record
+                // match "WARC/1.1".
+                if warc_header_buffer.starts_with("WARC/1.1") {
+                    parsed_record = process_headers(parsed_record, &warc_header_buffer);
+
+                    // Now that we've parsed the header, add the header length
+                    // and content length to the file offset. Also add 4 bytes
+                    // to account for the newlines separating each record. The
+                    // new file offset should now be at the start of the next record.
+                    self.file_offset +=
+                        parsed_record.header_length + parsed_record.content_length + 4;
+
+                    // If both of these conditions are met,
+                    // the record contains an HTTP resource.
+                    if [
+                        Some(WarcRecordType::Response),
+                        Some(WarcRecordType::Revisit),
+                    ]
+                    .contains(&parsed_record.record_type)
+                        && parsed_record.is_http
+                    {
+                        let http_header_buffer = read_header_block(reader)?;
+                        parsed_record = process_headers(parsed_record, &http_header_buffer);
+                    }
+
+                    return Some(parsed_record);
+                } else {
+                    // If the header does not start with "WARC/1.1"
+                    // then return none. This should be an error.
+                    return None;
+                }
             }
         } else {
             // If the byte offset is greater than the file size,
@@ -214,7 +281,7 @@ impl Iterator for WarcReader {
     }
 }
 
-fn read_header_block(reader: &mut BufReader<File>) -> Option<String> {
+fn read_header_block<R: BufRead>(reader: &mut R) -> Option<String> {
     // This function was adapted from the warc_reader.rs
     // module in the warc library at https://github.com/jedireza/warc
     //
@@ -266,7 +333,7 @@ fn read_header_block(reader: &mut BufReader<File>) -> Option<String> {
     return Some(header_buffer);
 }
 
-fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord {
+fn process_headers(mut parsed_record: IndexRecord, buffer: &str) -> IndexRecord {
     #[derive(PartialEq)]
     enum HeaderType {
         Warc,
@@ -287,7 +354,7 @@ fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord 
         // this should be the HTTP status code.
         let raw_status_code = buffer.get(9..12).unwrap();
         // TODO! Return 'None' or 'Error' if this doesn't work.
-        parsed_header.http_status_code = raw_status_code.parse::<usize>().unwrap();
+        parsed_record.http_status_code = raw_status_code.parse::<usize>().unwrap();
     }
 
     // Iterate over the lines in the header block, skipping
@@ -304,19 +371,19 @@ fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord 
             HeaderType::Warc => {
                 match key.as_str() {
                     "content-length" => {
-                        parsed_header.content_length = value.parse::<usize>().unwrap();
+                        parsed_record.content_length = value.parse::<usize>().unwrap();
                     }
                     "warc-payload-digest" => {
-                        parsed_header.digest = String::from_str(value).unwrap();
+                        parsed_record.digest = String::from_str(value).unwrap();
                     }
                     "warc-date" => {
-                        parsed_header.timestamp = String::from_str(value).unwrap();
+                        parsed_record.timestamp = String::from_str(value).unwrap();
                     }
                     "warc-target-uri" => {
-                        parsed_header.url = String::from_str(value).unwrap();
+                        parsed_record.url = String::from_str(value).unwrap();
                     }
                     "warc-type" => {
-                        parsed_header.record_type = match value {
+                        parsed_record.record_type = match value {
                             "response" => Some(WarcRecordType::Response),
                             "revisit" => Some(WarcRecordType::Revisit),
                             "resource" => Some(WarcRecordType::Resource),
@@ -332,7 +399,7 @@ fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord 
                         }) {
                             // If the first 16 characters of the content type
                             // match this then it's an HTTP resource
-                            parsed_header.is_http = true;
+                            parsed_record.is_http = true;
                         }
                     }
                     _ => {
@@ -345,7 +412,7 @@ fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord 
             // response body, and we want to get that.
             HeaderType::Http => {
                 if &key == "content-type" {
-                    value.clone_into(&mut parsed_header.mime_type);
+                    value.clone_into(&mut parsed_record.mime_type);
                 }
             }
         }
@@ -354,10 +421,10 @@ fn process_headers(mut parsed_header: IndexRecord, buffer: &str) -> IndexRecord 
     // We additionally want to know, if the content-type
     // is "text/html", and the status code was successful,
     // set the is_page value to true.
-    if parsed_header.mime_type == "text/html"
-        && (200..299).contains(&parsed_header.http_status_code)
+    if parsed_record.mime_type == "text/html"
+        && (200..299).contains(&parsed_record.http_status_code)
     {
-        parsed_header.is_page = true;
+        parsed_record.is_page = true;
     }
-    return parsed_header;
+    return parsed_record;
 }
