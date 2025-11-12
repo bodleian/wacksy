@@ -7,7 +7,8 @@ use std::{
 };
 
 fn main() {
-    let index = indexer();
+    let warc_file_path = std::path::Path::new("parser/example.warc.gz");
+    let index = indexer(warc_file_path);
     let cdxj = to_cdxj_string(&index);
     let pages = to_pages_json_string(&index);
 
@@ -54,8 +55,7 @@ fn to_pages_json_string(index: &[IndexRecord]) -> String {
     return pages_index.trim_end().to_owned();
 }
 
-fn indexer() -> Vec<IndexRecord> {
-    let warc_file_path = std::path::Path::new("parser/example.warc.gz");
+fn indexer(warc_file_path: &Path ) -> Vec<IndexRecord> {
     let mut index = Vec::with_capacity(512);
 
     for index_record in WarcReader::new(warc_file_path) {
