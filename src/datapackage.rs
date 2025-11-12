@@ -35,7 +35,10 @@ use serde_json;
 use sha2::{Digest as _, Sha256};
 use std::{error::Error, ffi::OsStr, fmt, fs, path::Path};
 
-use crate::{WACZ_VERSION, indexer::Index};
+use crate::{
+    WACZ_VERSION,
+    indexer::{IndexRecord, to_cdxj_string, to_pages_json_string},
+};
 
 /// The main datapackage struct.
 #[derive(Serialize, Deserialize)]
@@ -94,7 +97,7 @@ impl DataPackage {
     /// Will return a `DataPackageError` relating to any
     /// resource if there is anything wrong with the filename
     /// or path of a resource.
-    pub fn new(warc_file_path: &Path, index: &Index) -> Result<Self, DataPackageError> {
+    pub fn new(warc_file_path: &Path, index: &Vec<IndexRecord>) -> Result<Self, DataPackageError> {
         let mut data_package = Self::default();
 
         let warc_file_bytes = match fs::read(warc_file_path) {
@@ -104,9 +107,9 @@ impl DataPackage {
 
         // add warc file to datapackage
         let path: &Path = if warc_file_path.extension() == Some(OsStr::new("gz")) {
-            Path::new("archive/data.warc.gz")
+            Path::new("archive/example.warc.gz")
         } else {
-            Path::new("archive/data.warc")
+            Path::new("archive/example.warc")
         };
         Self::add_resource(
             &mut data_package,
@@ -117,14 +120,14 @@ impl DataPackage {
         let path: &Path = Path::new("indexes/index.cdxj");
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &index.cdxj.to_string().into_bytes())?,
+            DataPackageResource::new(path, &to_cdxj_string(&index).into_bytes())?,
         );
 
         // add pages file to datapackage
         let path: &Path = Path::new("pages/pages.jsonl");
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &index.pages.to_string().into_bytes())?,
+            DataPackageResource::new(path, &to_pages_json_string(&index).into_bytes())?,
         );
 
         return Ok(data_package);
@@ -255,7 +258,7 @@ mod tests {
 
         pub fn create_datapackage() -> DataPackage {
             let warc_file_path: &Path = Path::new("tests/example.warc.gz");
-            let index = indexer::Index::index_file(warc_file_path).unwrap();
+            let index = indexer(warc_file_path);
             return DataPackage::new(&warc_file_path, &index).unwrap();
         }
     }

@@ -1,2 +1,2 @@
-com,example)/ 20250423121042 {"url":"https://example.com/","digest":"sha256:ea8fac7c65fb589b0d53560f5251f74f9e9b243478dcb6b3ea79b5e36449c8d9","mime":"text/html","offset":333,"length":1653,"status":200,"filename":"example.warc.gz"}
-com,example)/favicon.ico 20250423121042 {"url":"https://example.com/favicon.ico","digest":"sha256:ea8fac7c65fb589b0d53560f5251f74f9e9b243478dcb6b3ea79b5e36449c8d9","mime":"text/html","offset":3631,"length":1624,"status":404,"filename":"example.warc.gz"}
+com,example)/ 20250423121042 {"url":"https://example.com/","digest":"sha256:ea8fac7c65fb589b0d53560f5251f74f9e9b243478dcb6b3ea79b5e36449c8d9","mime":"text/html","offset":278,"length":1653,"status":200,"filename":"example.warc.gz"}
+com,example)/favicon.ico 20250423121042 {"url":"https://example.com/favicon.ico","digest":"sha256:ea8fac7c65fb589b0d53560f5251f74f9e9b243478dcb6b3ea79b5e36449c8d9","mime":"text/html","offset":2253,"length":1624,"status":404,"filename":"example.warc.gz"}
