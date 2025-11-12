@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use flate2::bufread::GzDecoder;
 use std::{
     fs::File,
@@ -368,14 +369,9 @@ fn process_headers(mut parsed_record: IndexRecord, buffer: &str) -> IndexRecord 
                     }
                     "warc-date" => {
                         parsed_record.timestamp = {
-                            // Here we parse the timestamp to return it in the right format
-                            // this is really janky and was written in a rush,
-                            // it could be a lot better!
-                            let mut truncated_timestamp = value.get(..19).unwrap().to_owned();
-                            truncated_timestamp.retain(|c| c != '-');
-                            truncated_timestamp.retain(|c| c != 'T');
-                            truncated_timestamp.retain(|c| c != ':');
-                            truncated_timestamp
+                            // Parse the timestamp, and write out a formatted string
+                            let timestamp = DateTime::parse_from_rfc3339(&value).unwrap();
+                            timestamp.format("%Y%m%d%H%M%S").to_string()
                         }
                     }
                     "warc-target-uri" => {
