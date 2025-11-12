@@ -696,13 +696,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parser"
-version = "0.0.1"
-dependencies = [
- "flate2",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1046,6 +1039,7 @@ name = "wacksy"
 version = "0.1.3"
 dependencies = [
  "chrono",
+ "flate2",
  "httparse",
  "jsonschema",
  "libflate",

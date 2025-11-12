@@ -13,6 +13,7 @@ include = ["src/**/*", "LICENSE", "README.md"]
 
 [dependencies]
 chrono = { version = "0.4.41", features = ["alloc", "serde"] }
+flate2 = "1.1.5"
 httparse = "1.10.1"
 libflate = "1"
 rawzip = "0.4.1"
@@ -27,9 +28,6 @@ pretty_assertions = "1"
 jsonschema = { version = "0.33.0", default-features = false, features = [
     "resolve-file",
 ] }
-
-[workspace]
-members = ["parser"]
 
 [lints.rust]
 unsafe_code = "forbid"

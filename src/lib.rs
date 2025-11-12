@@ -24,7 +24,7 @@ use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::{CDXJIndex, Index, IndexingError, PageIndex},
+    indexer::{indexer},
 };
 
 /// Set the WACZ version of the file being created,
@@ -35,8 +35,6 @@ pub const WACZ_VERSION: &str = "1.1.1";
 pub struct WACZ {
     pub datapackage: DataPackage,
     pub datapackage_digest: DataPackageDigest,
-    pub cdxj_index: CDXJIndex,
-    pub pages_index: PageIndex,
 }
 impl WACZ {
     /// # Create WACZ from WARC file
@@ -54,28 +52,22 @@ impl WACZ {
     pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
         // check whether the file exists at the given path
         if warc_file_path.exists() {
-            match Index::index_file(warc_file_path) {
-                Ok(index) => {
-                    let datapackage = match DataPackage::new(warc_file_path, &index) {
-                        Ok(datapackage) => datapackage,
-                        Err(datapackage_error) => {
-                            return Err(WaczError::DataPackageError(datapackage_error));
-                        }
-                    };
-                    let datapackage_digest = match datapackage.digest() {
-                        Ok(digest) => digest,
-                        Err(digest_error) => return Err(WaczError::DataPackageError(digest_error)),
-                    };
-
-                    return Ok(Self {
-                        datapackage,
-                        datapackage_digest,
-                        cdxj_index: index.cdxj,
-                        pages_index: index.pages,
-                    });
+            let index = indexer(warc_file_path);
+            let datapackage: DataPackage = match DataPackage::new(warc_file_path, &index) {
+                Ok(datapackage) => datapackage,
+                Err(datapackage_error) => {
+                    return Err(WaczError::DataPackageError(datapackage_error));
                 }
-                Err(indexing_error) => return Err(WaczError::IndexingError(indexing_error)),
-            }
+            };
+            let datapackage_digest = match datapackage.digest() {
+                Ok(digest) => digest,
+                Err(digest_error) => return Err(WaczError::DataPackageError(digest_error)),
+            };
+
+            return Ok(Self {
+                datapackage,
+                datapackage_digest,
+            });
         } else {
             // the filepath doesn't exist so return with error
             let file_path_string = warc_file_path.to_string_lossy().to_string();
@@ -168,7 +160,7 @@ impl WACZ {
 #[derive(Debug)]
 pub enum WaczError {
     WarcFileError(String),
-    IndexingError(IndexingError),
+    // IndexingError(IndexingError),
     DataPackageError(DataPackageError),
 }
 impl fmt::Display for WaczError {
@@ -177,9 +169,9 @@ impl fmt::Display for WaczError {
             Self::WarcFileError(file_path) => {
                 return write!(message, "No file found at {file_path}");
             }
-            Self::IndexingError(error_message) => {
-                return write!(message, "Indexing error: {error_message}");
-            }
+            // Self::IndexingError(error_message) => {
+            //     return write!(message, "Indexing error: {error_message}");
+            // }
             Self::DataPackageError(error_message) => {
                 return write!(message, "Error when creating datapackage: {error_message}");
             }
@@ -190,7 +182,7 @@ impl Error for WaczError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::WarcFileError(_) => return None,
-            Self::IndexingError(indexing_error) => return Some(indexing_error),
+            // Self::IndexingError(indexing_error) => return Some(indexing_error),
             Self::DataPackageError(datapackage_error) => return Some(datapackage_error),
         }
     }
