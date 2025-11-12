@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.1.4) - 2025-11-12
+
+### Added
+
+- work on parsing HTTP headers in order to find the content-length
+- work on parsing WARC headers
+- add GzDecoder iterator which returns file-level byte position
+
+### Other
+
+- remove unnecessary dependencies
+- *(indexer)* merge new indexer into main code
+- return parsed item without suffixed bytes
+- start workspace with new branch
+
 ## [0.1.3](https://github.com/bodleian/wacksy/compare/v0.1.2...v0.1.3) - 2025-10-31
 
 After reading about the [Lean Crate Initiative](https://github.com/the-lean-crate/criner), I edited the Cargo manifest to [include](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields) only the files necessary for building the crate when publishing.
