@@ -16,7 +16,7 @@ impl RecordTimestamp {
     /// # Errors
     ///
     /// Returns a `RecordTimestampError` if there is a problem with
-    /// parsing, and this wraps `chrono::ParseError`. Otherwise returns
+    /// parsing, and this wraps `chrono::ParseError`. Otherwise, returns
     /// `ValueNotFound` if there is no date in the WARC header.
     pub fn new(record: &Record<BufferedBody>) -> Result<Self, IndexingError> {
         match record.header(WarcHeader::Date) {

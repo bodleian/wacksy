@@ -11,7 +11,7 @@
 //!   "profile": "data-package",
 //!   "wacz_version": "1.1.1",
 //!   "created": "2025-05-16T11:03:03.499792020+01:00",
-//!   "software": "wacksy 0.1.0",
+//!   "software": "wacksy 0.1.3",
 //!   "resources": [
 //!     {
 //!       "name": "data.warc",
@@ -46,9 +46,9 @@ pub struct DataPackage {
     pub wacz_version: String,
     /// WACZ creation date, this is set to local datetime in [RFC 3399 format](https://rfc3339.date/).
     pub created: String,
-    /// The name of the software used to create the WACZ file, in this case `wacksy 0.1.0`.
+    /// The name of the software used to create the WACZ file, in this case `wacksy 0.1.3`.
     pub software: String,
-    /// List of file names, paths, sizes and fixity for all files contained in the WACZ.
+    /// List of file names, paths, sizes, and fixity for all files contained in the WACZ.
     pub resources: Vec<DataPackageResource>,
 }
 
@@ -139,7 +139,7 @@ impl DataPackage {
     /// # Digest datapackage
     ///
     /// Takes a `DataPackage` struct and returns a `DataPackageDigest`
-    /// containing an sha256 hash of the datapackage.
+    /// containing a Sha256 hash of the datapackage.
     ///
     /// # Errors
     ///

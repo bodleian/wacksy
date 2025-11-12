@@ -7,7 +7,7 @@ pub struct RecordDigest(String);
 impl RecordDigest {
     /// # Get Warc digest
     ///
-    /// Takes the digest from from `WarcHeader::PayloadDigest`, and
+    /// Takes the digest from `WarcHeader::PayloadDigest`, and
     /// returns it as a string.
     ///
     /// # Errors

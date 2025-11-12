@@ -10,7 +10,7 @@ impl RecordContentType {
     /// Parses the HTTP content type from the HTTP headers in
     /// the record body; this is not the same as the
     /// [content type from the WARC header](https://iipc.github.io/warc-specifications/specifications/warc-format/warc-1.1/#content-type),
-    /// which would ususally be `application/http`.
+    /// which would usually be `application/http`.
     ///
     /// If the WARC record type is `revisit`, in which case the spec
     /// says to directly return that as the content type.
@@ -19,14 +19,14 @@ impl RecordContentType {
     ///
     /// Returns a `RecordContentTypeError` in case of any problems with
     /// parsing; this either wraps `httparse::Error`, or a `Utf8Error` when
-    /// parsing the content type to string. Alternatively returns `ValueNotFound`
+    /// parsing the content type to string. Alternatively, returns `ValueNotFound`
     /// if no content type is found in the HTTP headers.
     pub fn new(record: &Record<BufferedBody>) -> Result<Self, IndexingError> {
         if record.warc_type() == &RecordType::Revisit {
             return Ok(Self("revisit".to_owned()));
         } else {
-            // create a list of 64 empty headers, if this is not
-            // enough then you'll get a TooManyHeaders error
+            // Create a list of 64 empty headers, if this is not
+            // enough then you'll get a TooManyHeaders error.
             let mut headers = [httparse::EMPTY_HEADER; 64];
             let mut response = httparse::Response::new(&mut headers);
             match response.parse(record.body()) {
