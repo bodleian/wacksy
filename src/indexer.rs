@@ -26,10 +26,13 @@ pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
 
     for record in index {
         let surt = create_surt(&record.url).unwrap();
+        // Parse the timestamp, and write out a formatted string
+        let timestamp = DateTime::parse_from_rfc3339(&record.timestamp).unwrap();
+        timestamp.format("%Y%m%d%H%M%S").to_string();
         let formatted_record = format!(
             "{} {} {{\"url\":\"{}\",\"digest\":\"{}\",\"mime\":\"{}\",\"offset\":{},\"length\":{},\"status\":{},\"filename\":\"{}\"}}\n",
             surt,
-            record.timestamp,
+            timestamp,
             record.url,
             record.digest,
             record.mime_type,
@@ -368,11 +371,7 @@ fn process_headers(mut parsed_record: IndexRecord, buffer: &str) -> IndexRecord 
                         parsed_record.digest = String::from_str(value).unwrap();
                     }
                     "warc-date" => {
-                        parsed_record.timestamp = {
-                            // Parse the timestamp, and write out a formatted string
-                            let timestamp = DateTime::parse_from_rfc3339(&value).unwrap();
-                            timestamp.format("%Y%m%d%H%M%S").to_string()
-                        }
+                        parsed_record.timestamp = String::from_str(value).unwrap();
                     }
                     "warc-target-uri" => {
                         parsed_record.url = String::from_str(value).unwrap();

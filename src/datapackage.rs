@@ -4,7 +4,7 @@
 //! > The file **must** be present at the root of the WACZ which serves as the manifest for the web archive
 //! > and is compliant with the [FRICTIONLESS-DATA-PACKAGE](https://specs.frictionlessdata.io/data-package/) specification.
 //!
-//! The file should look something like this when serialised to json:
+//! The file should look something like this when serialised to JSON:
 //!
 //! ```json
 //! {
@@ -31,7 +31,6 @@
 
 use chrono::Local;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use sha2::{Digest as _, Sha256};
 use std::{error::Error, ffi::OsStr, fmt, fs, path::Path};
 
@@ -41,7 +40,7 @@ use crate::{
 };
 
 /// The main datapackage struct.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DataPackage {
     /// In WACZ 1.1.1 this value is `data-package`.
     pub profile: String,
@@ -64,7 +63,7 @@ pub struct DataPackageResource {
     pub hash: String,
     pub bytes: usize,
     /// The raw content of the resource in bytes,
-    /// not passed through to serde when serialising to json.
+    /// not passed through to serde when serialising to JSON.
     #[serde(skip)]
     pub content: Vec<u8>,
 }
@@ -74,6 +73,15 @@ pub struct DataPackageResource {
 pub struct DataPackageDigest {
     pub path: String,
     pub hash: String,
+}
+impl fmt::Display for DataPackageDigest {
+    fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
+        return write!(
+            message,
+            "{{\"path\":\"{}\",\"hash\":\"{}\"}}",
+            self.path, self.hash
+        );
+    }
 }
 
 impl Default for DataPackage {
@@ -116,7 +124,7 @@ impl DataPackage {
             DataPackageResource::new(path, &warc_file_bytes)?,
         );
 
-        // add cdxj file to datapackage
+        // add CDXJ file to datapackage
         let path: &Path = Path::new("indexes/index.cdxj");
         Self::add_resource(
             &mut data_package,
@@ -143,23 +151,27 @@ impl DataPackage {
     ///
     /// Takes a `DataPackage` struct and returns a `DataPackageDigest`
     /// containing a Sha256 hash of the datapackage.
-    ///
-    /// # Errors
-    ///
-    /// Will return a `serde_json` error if there's any problem
-    /// deserialising the data package to a vector.
-    pub fn digest(&self) -> Result<DataPackageDigest, DataPackageError> {
-        match serde_json::to_vec(&self) {
-            Ok(datapackage_as_vec) => {
-                return Ok(DataPackageDigest {
-                    path: "datapackage.json".to_owned(),
-                    hash: format!("sha256:{:x}", Sha256::digest(datapackage_as_vec)),
-                });
-            }
-            Err(serde_error) => {
-                return Err(DataPackageError::SerialisationError(serde_error));
-            }
-        }
+    pub fn digest(&self) -> DataPackageDigest {
+        return DataPackageDigest {
+            path: "datapackage.json".to_owned(),
+            hash: format!("sha256:{:x}", Sha256::digest(self.to_string())),
+        };
+    }
+}
+impl fmt::Display for DataPackage {
+    fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
+        let collected_resources = self
+            .resources
+            .iter()
+            .map(|f| f.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+        // Iterate over each resource here and create datapackage
+        return write!(
+            message,
+            "{{\"profile\":\"data-package\",\"wacz_version\":\"{}\",\"created\":\"{}\",\"software\":\"{}\",\"resources\":[{collected_resources}]}}",
+            self.wacz_version, self.created, self.software
+        );
     }
 }
 
@@ -209,13 +221,21 @@ impl DataPackageResource {
         });
     }
 }
+impl fmt::Display for DataPackageResource {
+    fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
+        return write!(
+            message,
+            "{{\"name\":\"{}\",\"path\":\"{}\",\"hash\":\"{}\",\"bytes\":\"{}\"}}",
+            self.file_name, self.path, self.hash, self.bytes
+        );
+    }
+}
 
 #[derive(Debug)]
 pub enum DataPackageError {
     FileNameError(String),
     FilePathError(String),
     FileReadError(std::io::Error),
-    SerialisationError(serde_json::Error),
 }
 impl fmt::Display for DataPackageError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -229,16 +249,12 @@ impl fmt::Display for DataPackageError {
             Self::FileReadError(error_message) => {
                 return write!(message, "Could not read WARC file: {error_message}");
             }
-            Self::SerialisationError(error_message) => {
-                return write!(message, "Serialisation error: {error_message}");
-            }
         }
     }
 }
 impl Error for DataPackageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::SerialisationError(parse_error) => return Some(parse_error),
             Self::FileReadError(read_error) => return Some(read_error),
             Self::FilePathError(_) | Self::FileNameError(_) => return None,
         }
@@ -268,6 +284,7 @@ mod tests {
     #[test]
     fn validate_datapackage_schema() -> Result<(), Box<dyn Error>> {
         let datapackage: DataPackage = common::create_datapackage();
+
         let instance: Value = serde_json::to_value(&datapackage)?;
         let schema: Value =
             serde_json::from_reader(File::open("tests/schemas/datapackage.schema.json")?)?;
@@ -292,7 +309,7 @@ mod tests {
     fn validate_datapackage_digest_schema() -> Result<(), Box<dyn Error>> {
         let datapackage: DataPackage = common::create_datapackage();
         // create the digest
-        let datapackage_digest = datapackage.digest()?;
+        let datapackage_digest = datapackage.digest();
         let instance: Value = serde_json::to_value(&datapackage_digest)?;
         let schema: Value =
             serde_json::from_reader(File::open("tests/schemas/datapackage-digest.schema.json")?)?;
