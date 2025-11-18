@@ -225,7 +225,7 @@ impl fmt::Display for DataPackageResource {
     fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
         return write!(
             message,
-            "{{\"name\":\"{}\",\"path\":\"{}\",\"hash\":\"{}\",\"bytes\":\"{}\"}}",
+            "{{\"name\":\"{}\",\"path\":\"{}\",\"hash\":\"{}\",\"bytes\":{}}}",
             self.file_name, self.path, self.hash, self.bytes
         );
     }
