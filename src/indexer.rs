@@ -28,11 +28,10 @@ pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
         let surt = create_surt(&record.url).unwrap();
         // Parse the timestamp, and write out a formatted string
         let timestamp = DateTime::parse_from_rfc3339(&record.timestamp).unwrap();
-        timestamp.format("%Y%m%d%H%M%S").to_string();
         let formatted_record = format!(
             "{} {} {{\"url\":\"{}\",\"digest\":\"{}\",\"mime\":\"{}\",\"offset\":{},\"length\":{},\"status\":{},\"filename\":\"{}\"}}\n",
             surt,
-            timestamp,
+            timestamp.format("%Y%m%d%H%M%S").to_string(),
             record.url,
             record.digest,
             record.mime_type,
