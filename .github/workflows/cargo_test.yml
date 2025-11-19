@@ -1,12 +1,16 @@
-name: Code-check
+name: Cargo-test
 
 on:
   push:
     branches:
     - main
+    paths:
+    - '**.rs'
   pull_request:
     branches:
     - "main"
+    paths:
+    - '**.rs'
 
 env:
   CARGO_TERM_COLOR: always
@@ -24,21 +28,8 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Cargo check
-        run: cargo check --locked
-
       - name: Cargo test
         run: cargo test --locked
 
       - name: Validate wacz file with unzip
         run: unzip -t tests/output.wacz
-
-      - name: Setup py-wacz
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-          cache: 'pip' 
-      - run: pip install -r tests/requirements.txt
-
-      - name: Validate wacz file with py-wacz
-        run: wacz validate -f tests/output.wacz
