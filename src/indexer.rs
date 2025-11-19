@@ -7,6 +7,7 @@ use std::{
     str::FromStr as _,
 };
 
+#[must_use]
 pub fn indexer(warc_file_path: &Path) -> Vec<IndexRecord> {
     let mut index = Vec::with_capacity(512);
 
@@ -21,6 +22,7 @@ pub fn indexer(warc_file_path: &Path) -> Vec<IndexRecord> {
     return index;
 }
 
+#[must_use]
 pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
     let mut cdxj_index = String::with_capacity(512);
 
@@ -31,7 +33,7 @@ pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
         let formatted_record = format!(
             "{} {} {{\"url\":\"{}\",\"digest\":\"{}\",\"mime\":\"{}\",\"offset\":{},\"length\":{},\"status\":{},\"filename\":\"{}\"}}\n",
             surt,
-            timestamp.format("%Y%m%d%H%M%S").to_string(),
+            timestamp.format("%Y%m%d%H%M%S"),
             record.url,
             record.digest,
             record.mime_type,
@@ -44,6 +46,8 @@ pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
     }
     return cdxj_index.trim_end().to_owned();
 }
+
+#[must_use]
 pub fn to_pages_json_string(index: &[IndexRecord]) -> String {
     let mut pages_index =
         "{\"format\":\"json-pages-1.0\",\"id\":\"pages\",\"title\":\"All Pages\"}\n".to_owned();

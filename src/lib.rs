@@ -135,7 +135,7 @@ impl WACZ {
         add_file_to_archive(
             &mut archive,
             CompressionMethod::Store,
-            &self.datapackage.to_string().as_bytes(),
+            self.datapackage.to_string().as_bytes(),
             "datapackage.json",
         );
 
@@ -143,7 +143,7 @@ impl WACZ {
         add_file_to_archive(
             &mut archive,
             CompressionMethod::Store,
-            &self.datapackage_digest.to_string().as_bytes(),
+            self.datapackage_digest.to_string().as_bytes(),
             "datapackage-digest.json",
         );
 

@@ -33,19 +33,19 @@ unsafe_code = "forbid"
 cargo = { level = "warn", priority = 0 }
 pedantic = { level = "warn", priority = 0 }
 nursery = { level = "warn", priority = 0 }
-# Consistent explicit returns
+# Use explicit syntax
 implicit_return = { level = "warn", priority = 1 }
 needless_return = { level = "allow", priority = 1 }
+needless_continue = { level = "allow", priority = 1 }
+redundant_else = { level = "allow", priority = 1 }
 # Instead of opting-out of restriction lints,
 # I should pick the ones I want to actually apply
-redundant_else = { level = "allow", priority = 1 }
-question_mark_used = { level = "allow", priority = 1 }
-option_if_let_else = { level = "allow", priority = 1 }
 std_instead_of_core = { level = "allow", priority = 1 }
-# unwrap_used = { level = "warn", priority = 1 }
 missing_assert_message = { level = "warn", priority = 1 }
 min_ident_chars = { level = "warn", priority = 1 }
 unused_trait_names = { level = "warn", priority = 1 }
+# Enable this when adding error checking
+# unwrap_used = { level = "warn", priority = 1 }
 
 [profile.release]
 # Magic incantations to produce speedier release builds

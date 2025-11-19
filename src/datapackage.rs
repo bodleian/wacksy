@@ -101,7 +101,7 @@ impl DataPackage {
     /// Will return a `DataPackageError` relating to any
     /// resource if there is anything wrong with the filename
     /// or path of a resource.
-    pub fn new(warc_file_path: &Path, index: &Vec<IndexRecord>) -> Result<Self, DataPackageError> {
+    pub fn new(warc_file_path: &Path, index: &[IndexRecord]) -> Result<Self, DataPackageError> {
         let mut data_package = Self::default();
 
         let warc_file_bytes = match fs::read(warc_file_path) {
@@ -124,14 +124,14 @@ impl DataPackage {
         let path: &Path = Path::new("indexes/index.cdxj");
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &to_cdxj_string(&index).into_bytes())?,
+            DataPackageResource::new(path, &to_cdxj_string(index).into_bytes())?,
         );
 
         // add pages file to datapackage
         let path: &Path = Path::new("pages/pages.jsonl");
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &to_pages_json_string(&index).into_bytes())?,
+            DataPackageResource::new(path, &to_pages_json_string(index).into_bytes())?,
         );
 
         return Ok(data_package);
@@ -147,6 +147,7 @@ impl DataPackage {
     ///
     /// Takes a `DataPackage` struct and returns a `DataPackageDigest`
     /// containing a Sha256 hash of the datapackage.
+    #[must_use]
     pub fn digest(&self) -> DataPackageDigest {
         return DataPackageDigest {
             path: "datapackage.json".to_owned(),
@@ -159,7 +160,7 @@ impl fmt::Display for DataPackage {
         let collected_resources = self
             .resources
             .iter()
-            .map(|f| f.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<Vec<String>>()
             .join(",");
         // Iterate over each resource here and create datapackage
