@@ -7,6 +7,10 @@ use std::{
     str::FromStr as _,
 };
 
+use crate::indexer::surt::create_surt;
+
+mod surt;
+
 #[must_use]
 pub fn indexer(warc_file_path: &Path) -> Vec<IndexRecord> {
     let mut index = Vec::with_capacity(512);
@@ -64,22 +68,6 @@ pub fn to_pages_json_string(index: &[IndexRecord]) -> String {
         }
     }
     return pages_index.trim_end().to_owned();
-}
-
-fn create_surt(url: &str) -> Option<String> {
-    let url_without_protocol = match url {
-        url if url.starts_with("https") => url.get(8..),
-        url if url.starts_with("http") => url.get(7..),
-        // URLs starting with urn are not surt-able.
-        url if url.starts_with("urn") => return None,
-        _ => None,
-    }
-    .unwrap();
-    let url_split = url_without_protocol.split_once('/').unwrap();
-    let mut host: Vec<&str> = url_split.0.split('.').collect();
-    host.reverse();
-    let host_reversed = host.join(",");
-    return Some(format!("{host_reversed})/{}", url_split.1));
 }
 
 #[derive(Debug, PartialEq, Clone)]
