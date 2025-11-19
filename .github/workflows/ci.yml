@@ -1,0 +1,81 @@
+name: Cargo-check
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - '**.rs'
+  pull_request:
+    branches:
+    - "main"
+    paths:
+    - '**.rs'
+    
+env:
+  CARGO_TERM_COLOR: always
+  # Disable incremental compilation for faster from-scratch builds
+  CARGO_INCREMENTAL: 0
+
+jobs:
+
+  check_rust:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout directory
+        uses: actions/checkout@v5
+        
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Cargo check
+        run: cargo check --locked
+
+  test_rust:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout directory
+        uses: actions/checkout@v5
+        
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Cargo test
+        run: cargo test --locked
+
+  test_zip:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout directory
+        uses: actions/checkout@v5
+        
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Cargo test
+        run: cargo test --locked
+
+      - name: Validate wacz file with unzip
+        run: unzip -t tests/output.wacz
+
+  test_wacz:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout directory
+        uses: actions/checkout@v5
+        
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Cargo test
+        run: cargo test --locked
+
+      - name: Setup py-wacz
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+          cache: 'pip' 
+      - run: pip install -r tests/requirements.txt
+
+      - name: Validate wacz file with py-wacz
+        run: wacz validate -f tests/output.wacz
