@@ -100,7 +100,7 @@ impl WACZ {
                 _ => todo!(),                          // return an error
             };
             // Wrap the file in a ZipDataWriter, which will track information for the
-            // Zip data descriptor (like uncompressed size and crc).
+            // Zip data descriptor (like uncompressed size and CRC).
             let mut writer = config.wrap(encoder);
 
             // Copy the data to the writer.
@@ -157,7 +157,6 @@ impl WACZ {
 #[derive(Debug)]
 pub enum WaczError {
     WarcFileError(String),
-    // IndexingError(IndexingError),
     DataPackageError(DataPackageError),
 }
 impl fmt::Display for WaczError {
@@ -166,9 +165,6 @@ impl fmt::Display for WaczError {
             Self::WarcFileError(file_path) => {
                 return write!(message, "No file found at {file_path}");
             }
-            // Self::IndexingError(error_message) => {
-            //     return write!(message, "Indexing error: {error_message}");
-            // }
             Self::DataPackageError(error_message) => {
                 return write!(message, "Error when creating datapackage: {error_message}");
             }
@@ -179,7 +175,6 @@ impl Error for WaczError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::WarcFileError(_) => return None,
-            // Self::IndexingError(indexing_error) => return Some(indexing_error),
             Self::DataPackageError(datapackage_error) => return Some(datapackage_error),
         }
     }

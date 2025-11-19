@@ -30,7 +30,6 @@
 //! ```
 
 use chrono::Local;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 use std::{error::Error, ffi::OsStr, fmt, fs, path::Path};
 
@@ -40,7 +39,7 @@ use crate::{
 };
 
 /// The main datapackage struct.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct DataPackage {
     /// In WACZ 1.1.1 this value is `data-package`.
     pub profile: String,
@@ -55,21 +54,18 @@ pub struct DataPackage {
 }
 
 /// A resource listed in the datapackage.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct DataPackageResource {
-    #[serde(rename = "name")]
     pub file_name: String,
     pub path: String,
     pub hash: String,
     pub bytes: usize,
     /// The raw content of the resource in bytes,
     /// not passed through to serde when serialising to JSON.
-    #[serde(skip)]
     pub content: Vec<u8>,
 }
 
 /// A digest of the datapackage file itself.
-#[derive(Serialize, Deserialize)]
 pub struct DataPackageDigest {
     pub path: String,
     pub hash: String,
@@ -263,6 +259,7 @@ impl Error for DataPackageError {
 
 #[cfg(test)]
 mod tests {
+
     use super::DataPackage;
     use serde_json::Value;
     use std::{error::Error, fs::File};
@@ -283,9 +280,10 @@ mod tests {
     /// Frictionless Datapackage Schema v1
     #[test]
     fn validate_datapackage_schema() -> Result<(), Box<dyn Error>> {
-        let datapackage: DataPackage = common::create_datapackage();
+        let datapackage = common::create_datapackage().to_string();
 
-        let instance: Value = serde_json::to_value(&datapackage)?;
+        let instance: Value = serde_json::from_str(&datapackage)?;
+
         let schema: Value =
             serde_json::from_reader(File::open("tests/schemas/datapackage.schema.json")?)?;
 
@@ -309,8 +307,8 @@ mod tests {
     fn validate_datapackage_digest_schema() -> Result<(), Box<dyn Error>> {
         let datapackage: DataPackage = common::create_datapackage();
         // create the digest
-        let datapackage_digest = datapackage.digest();
-        let instance: Value = serde_json::to_value(&datapackage_digest)?;
+        let datapackage_digest = datapackage.digest().to_string();
+        let instance: Value = serde_json::from_str(&datapackage_digest)?;
         let schema: Value =
             serde_json::from_reader(File::open("tests/schemas/datapackage-digest.schema.json")?)?;
 
