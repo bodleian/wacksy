@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.2.0) - 2025-11-21
+## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.2.0) - 2025-11-20
 
 The main thing in this release is a rewrite of the WARC parser/indexer ([#70](https://github.com/bodleian/wacksy/pull/70)). The rewrite was motivated by a need to correctly find the byte offset of a WARC record in a gzip archive, which I couldn't do with the `WarcReader` trait. In order to find the offset of a record _before decompression_ I need to keep track of the underlying reader, and once I'd gone down that road it turned out far easier to just carry on writing a parser.
 
