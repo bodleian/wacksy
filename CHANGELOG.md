@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.2.0) - 2025-11-21
+
+The main thing in this release is a rewrite of the WARC parser/indexer ([#70](https://github.com/bodleian/wacksy/pull/70)). The rewrite was motivated by a need to correctly find the byte offset of a WARC record in a gzip archive, which I couldn't do with the `WarcReader` trait. In order to find the offset of a record _before decompression_ I need to keep track of the underlying reader, and once I'd gone down that road it turned out far easier to just carry on writing a parser.
+
+I copied the basic [line-by-line pattern](https://github.com/jedireza/warc/blob/31235a29c7e277577b23648428232326144ecf48/src/warc_reader.rs#L96-L112) (with proper attribution) from the `warc` library. A nice feature of the WARC format is that the headers follow the same format as HTTP, so the `process_headers` function can deal with both WARC and HTTP headers.
+
+The WACZ files produced here are compatible with [replayweb](https://github.com/webrecorder/replayweb.page), which wasn't the case for the last few releases. You can consider it 'functionally complete'.
+
+### Caveats
+
+As a caveat, the new indexer is pretty raw; no proper error handling, leaky functions all over, all just thrown together in one file. A lot of the documentation is now gone and has to be rewritten. My goal was to get up to a minimum working example as quickly as possible, and now there's a bit of tidying up to do.
+
+### Security
+
+Fixed [a minor security flaw](https://rustsec.org/advisories/RUSTSEC-2024-0377.html) in `lexical-core`, because it's no longer present in the dependency tree.
+
+### Dependencies
+
+As a happy outcome of rewriting the indexer, I was able to remove the following dependencies: 
+
+- [httparse](https://crates.io/crates/httparse)
+- [libflate](https://crates.io/crates/libflate)
+- [serde](https://crates.io/crates/serde) (although this is still required as a dev dependency)
+- [serde_json](https://crates.io/crates/serde_json) (still a dev dependency, as above)
+- [url](https://crates.io/crates/url)
+- [warc](https://crates.io/crates/warc)
+
+And, I added the following dependencies:
+
+- [flate2](https://crates.io/crates/flate2)
+
+With a much reduced set of dependencies, an example binary produced from this library is only 517 kilobytes. Less than [most web pages](https://httparchive.org/reports/page-weight?lens=top1m&start=2025_01_01&end=2025_11_01&view=list)!
+
+This more dependency-light software is also easier to package, which will be useful as in future I would like to get this all packaged up for Debian.
+
+### Other
+
+Changed the release process, as of this release. I'm no longer using release PRs with the next release on a separate branch, as the last few times I've accidentally released without a changelog.
+
 ## [0.1.3](https://github.com/bodleian/wacksy/compare/v0.1.2...v0.1.3) - 2025-10-31
 
 After reading about the [Lean Crate Initiative](https://github.com/the-lean-crate/criner), I edited the Cargo manifest to [include](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields) only the files necessary for building the crate when publishing.
@@ -18,7 +57,7 @@ Added a small function to read the Gzip [magic number](https://thuc.space/posts/
 Motivated by easy performance wins, I've been looking at the dependencies of this library.
 
 - Remove [surt-rs](https://github.com/mijho/surt-rs) and replace it with the original simplified surt creating function. This effectively reverts commit 15d73c950dcf613fac19f4b8c251ddbfad2c1839. My main motivation for this was that surt-rs relies on the [regex](https://github.com/rust-lang/regex) library, which made up about half of the size of the library. I might revisit this decision in future, with some tweaks to surt-rs.
-- Remove [short uuids](https://github.com/radim10/short-uuid) used for page identifiers, and replace them with a simple incrementing counter. Much like the above, this cut out some complexity and eliminated unnecessary code at no real cost.
+- Remove [short UUIDs](https://github.com/radim10/short-uuid) used for page identifiers, and replace them with a simple incrementing counter. Much like the above, this cut out some complexity and eliminated unnecessary code at no real cost.
 
 ## [0.1.1](https://github.com/bodleian/wacksy/compare/v0.1.0...v0.1.1) - 2025-09-30
 
