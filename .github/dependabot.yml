@@ -10,6 +10,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 5
     groups:
       minor-bumps:
         update-types:
@@ -21,3 +23,5 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 5
