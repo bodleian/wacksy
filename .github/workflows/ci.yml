@@ -1,4 +1,4 @@
-name: Cargo-check
+name: "Check Rust code"
 
 on:
   push:

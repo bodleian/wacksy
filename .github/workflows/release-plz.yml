@@ -1,11 +1,11 @@
-name: Release-plz
+name: "Release new version"
 
 on:
   push:
     branches:
       - main
     paths:
-    - 'Cargo.toml'
+    - '**/Cargo.toml'
 
 jobs:
 
