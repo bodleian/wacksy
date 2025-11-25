@@ -1,37 +1,13 @@
-//! Structured definition of a datapackage.json file.
+//! Structured representation of a datapackage.json file.
+//!
 //! According to [the spec](https://specs.webrecorder.net/wacz/1.1.1/#datapackage-json):
 //!
 //! > The file **must** be present at the root of the WACZ which serves as the manifest for the web archive
 //! > and is compliant with the [FRICTIONLESS-DATA-PACKAGE](https://specs.frictionlessdata.io/data-package/) specification.
-//!
-//! The file should look something like this when serialised to JSON:
-//!
-//! ```json
-//! {
-//!   "profile": "data-package",
-//!   "wacz_version": "1.1.1",
-//!   "created": "2025-05-16T11:03:03.499792020+01:00",
-//!   "software": "wacksy 0.2.0",
-//!   "resources": [
-//!     {
-//!       "name": "data.warc",
-//!       "path": "archive/data.warc",
-//!       "hash": "sha256:210d0810aaf4a4aba556f97bc7fc497d176a8c171d8edab3390e213a41bed145",
-//!       "bytes": 4599
-//!     },
-//!     {
-//!       "name": "index.cdxj",
-//!       "path": "indexes/index.cdxj",
-//!       "hash": "sha256:0494f16f39fbb3744556e1d64be1088109ac35c730f4a30ac3a3b10942340ca3",
-//!       "bytes": 543
-//!     }
-//!   ]
-//! }
-//! ```
 
 use chrono::Local;
 use sha2::{Digest as _, Sha256};
-use std::{error::Error, ffi::OsStr, fmt, fs, path::Path};
+use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
     WACZ_VERSION,
@@ -56,13 +32,20 @@ pub struct DataPackage {
 /// A resource listed in the datapackage.
 #[derive(Debug)]
 pub struct DataPackageResource {
-    pub file_name: String,
     pub path: String,
+    pub resource_type: ResourceType,
     pub hash: String,
     pub bytes: usize,
     /// The raw content of the resource in bytes,
     /// not passed through to serde when serialising to JSON.
     pub content: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub enum ResourceType {
+    CDXJ,
+    Pages,
+    Warc,
 }
 
 /// A digest of the datapackage file itself.
@@ -109,29 +92,47 @@ impl DataPackage {
             Err(error) => return Err(DataPackageError::FileReadError(error)),
         };
 
-        // add warc file to datapackage
-        let path: &Path = if warc_file_path.extension() == Some(OsStr::new("gz")) {
-            Path::new("archive/example.warc.gz")
-        } else {
-            Path::new("archive/example.warc")
+        let warc_file_name = match warc_file_path.file_name() {
+            Some(file_name) => match file_name.to_str() {
+                Some(file_name) => file_name.to_owned(),
+                None => {
+                    return Err(DataPackageError::FileNameError(format!(
+                        "unable to convert {} to string",
+                        file_name.display()
+                    )));
+                }
+            },
+            None => {
+                return Err(DataPackageError::FileNameError(
+                    "file name is empty".to_owned(),
+                ));
+            }
         };
+
+        // Add Warc file to datapackage
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &warc_file_bytes)?,
+            DataPackageResource::new(ResourceType::Warc, &warc_file_name, &warc_file_bytes)?,
         );
 
-        // add CDXJ file to datapackage
-        let path: &Path = Path::new("indexes/index.cdxj");
+        // Add CDXJ file to datapackage
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &to_cdxj_string(index).into_bytes())?,
+            DataPackageResource::new(
+                ResourceType::CDXJ,
+                "index.cdxj",
+                &to_cdxj_string(index).into_bytes(),
+            )?,
         );
 
-        // add pages file to datapackage
-        let path: &Path = Path::new("pages/pages.jsonl");
+        // Add Pages file to datapackage
         Self::add_resource(
             &mut data_package,
-            DataPackageResource::new(path, &to_pages_json_string(index).into_bytes())?,
+            DataPackageResource::new(
+                ResourceType::Pages,
+                "pages.jsonl",
+                &to_pages_json_string(index).into_bytes(),
+            )?,
         );
 
         return Ok(data_package);
@@ -156,6 +157,30 @@ impl DataPackage {
     }
 }
 impl fmt::Display for DataPackage {
+    //! The file should look something like this when serialised to JSON:
+    //!
+    //! ```json
+    //! {
+    //!   "profile": "data-package",
+    //!   "wacz_version": "1.1.1",
+    //!   "created": "2025-05-16T11:03:03.499792020+01:00",
+    //!   "software": "wacksy 0.2.0",
+    //!   "resources": [
+    //!     {
+    //!       "name": "data.warc",
+    //!       "path": "archive/data.warc",
+    //!       "hash": "sha256:210d0810aaf4a4aba556f97bc7fc497d176a8c171d8edab3390e213a41bed145",
+    //!       "bytes": 4599
+    //!     },
+    //!     {
+    //!       "name": "index.cdxj",
+    //!       "path": "indexes/index.cdxj",
+    //!       "hash": "sha256:0494f16f39fbb3744556e1d64be1088109ac35c730f4a30ac3a3b10942340ca3",
+    //!       "bytes": 543
+    //!     }
+    //!   ]
+    //! }
+    //! ```
     fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
         let collected_resources = self
             .resources
@@ -183,47 +208,42 @@ impl DataPackageResource {
     /// Will return a `DataPackageError` mainly in case the
     /// resource file path or file name are missing or cannot
     /// be converted to string.
-    pub fn new(path: &Path, file_bytes: &[u8]) -> Result<Self, DataPackageError> {
-        let file_name = match path.file_name() {
-            Some(file_name) => match file_name.to_str() {
-                Some(file_name) => file_name.to_owned(),
-                None => {
-                    return Err(DataPackageError::FileNameError(format!(
-                        "unable to convert {} to string",
-                        file_name.display()
-                    )));
-                }
-            },
-            None => {
-                return Err(DataPackageError::FileNameError(
-                    "file name is empty".to_owned(),
-                ));
-            }
-        };
-        let path = match path.to_str() {
-            Some(path) => path.to_owned(),
-            None => {
-                return Err(DataPackageError::FilePathError(format!(
-                    "unable to convert {file_name:?} to string"
-                )));
-            }
-        };
+    pub fn new(
+        resource_type: ResourceType,
+        file_name: &str,
+        file_bytes: &[u8],
+    ) -> Result<Self, DataPackageError> {
+        // Add resource location to path. This
+        // is a pretty convoluted way of doing things
+        // but it works fine.
+        let mut path = match resource_type {
+            ResourceType::CDXJ => "indexes/",
+            ResourceType::Pages => "pages/",
+            ResourceType::Warc => "archive/",
+        }
+        .to_owned();
+        path.push_str(file_name);
 
         return Ok(Self {
-            file_name,
             path,
             hash: format!("sha256:{:x}", Sha256::digest(file_bytes)),
             bytes: file_bytes.len(),
             content: file_bytes.to_vec(),
+            resource_type,
         });
     }
 }
 impl fmt::Display for DataPackageResource {
     fn fmt(&self, message: &mut fmt::Formatter) -> fmt::Result {
+        let name = match self.resource_type {
+            ResourceType::CDXJ => "crawl_index",
+            ResourceType::Pages => "pages_file",
+            ResourceType::Warc => "web_archive_file",
+        };
         return write!(
             message,
             "{{\"name\":\"{}\",\"path\":\"{}\",\"hash\":\"{}\",\"bytes\":{}}}",
-            self.file_name, self.path, self.hash, self.bytes
+            name, self.path, self.hash, self.bytes
         );
     }
 }
