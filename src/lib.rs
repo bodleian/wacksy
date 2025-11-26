@@ -2,15 +2,20 @@
 //!
 //! ```
 //! # use std::error::Error;
+//! # use std::fs;
+//! # use std::io::{Cursor, Write as _};
 //! # use wacksy::WACZ;
 //! # fn main() -> Result<(), Box<dyn Error>> {
 //! let warc_file_path = std::path::Path::new("tests/example.warc.gz"); // set path to your ᴡᴀʀᴄ file
 //! let wacz_object = WACZ::from_file(warc_file_path)?; // index the ᴡᴀʀᴄ and create a ᴡᴀᴄᴢ object
 //! let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?; // zip up the ᴡᴀᴄᴢ
-//! std::fs::write("tests/output.wacz", zipped_wacz)?; // write out to file
+//! let mut wacz_file = fs::File::create("tests/example.wacz")?;
+//! # let mut wacz_file = Cursor::new(vec![0; 2048]);
+//! wacz_file.write_all(&zipped_wacz)?; // write out to file
+//! # fs::remove_file("tests/example.wacz")?;
 //! # Ok(())
 //! # }
-//! ```
+//!
 #![doc(
     html_logo_url = "https://www.ox.ac.uk/sites/default/themes/custom/oxweb/images/oxweb-logo.gif",
     html_favicon_url = "https://www.bodleian.ox.ac.uk/sites/default/files/styles/favicon-32x32/public/bodreader/site-favicon/bod-favicon.png"
@@ -46,7 +51,7 @@ impl WACZ {
     /// # Errors
     ///
     /// Returns a [`WaczError`], which can be caused by a problem in either the
-    /// [indexer](IndexingError) or the [datapackage](DataPackageError). As the
+    /// indexer (structured errors to-do) or the [datapackage](DataPackageError). As the
     /// datapackage depends on the index being complete, any problem with the
     /// indexer will return early without continuing.
     pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
