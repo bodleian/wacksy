@@ -14,7 +14,7 @@ include = ["src/**/*", "LICENSE", "README.md"]
 [dependencies]
 chrono = "0.4.41"
 flate2 = "1.1.5"
-rawzip = "0.4.1"
+rawzip = "0.4.2"
 sha2 = "0.10.9"
 
 [dev-dependencies]
