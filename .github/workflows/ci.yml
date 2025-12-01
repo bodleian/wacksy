@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2

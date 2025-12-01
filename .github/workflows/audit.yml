@@ -21,6 +21,6 @@ jobs:
       issues: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Audit Rust Dependencies
         uses: actions-rust-lang/audit@v1
