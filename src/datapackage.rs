@@ -314,7 +314,7 @@ mod tests {
         // Iterate over errors
         for error in validator.iter_errors(&instance) {
             eprintln!("Error: {error}");
-            eprintln!("Location: {}", error.instance_path);
+            eprintln!("Location: {}", error.instance_path());
         }
 
         // Boolean result
@@ -327,6 +327,7 @@ mod tests {
     #[test]
     fn validate_datapackage_digest_schema() -> Result<(), Box<dyn Error>> {
         let datapackage: DataPackage = common::create_datapackage();
+
         // create the digest
         let datapackage_digest = datapackage.digest().to_string();
         let instance: Value = serde_json::from_str(&datapackage_digest)?;
@@ -339,7 +340,7 @@ mod tests {
         // Iterate over errors
         for error in validator.iter_errors(&instance) {
             eprintln!("Error: {error}");
-            eprintln!("Location: {}", error.instance_path);
+            eprintln!("Location: {}", error.instance_path());
         }
 
         // Boolean result
