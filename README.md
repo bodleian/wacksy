@@ -8,6 +8,8 @@ An experimental Rust library for ~~reading and~~ writing ᴡᴀᴄᴢ files.
 
 ## Install
 
+boop
+
 With cargo installed, run the following command in your project directory:
 
 ```
