@@ -34,7 +34,7 @@ See [the documentation](https://docs.rs/wacksy/latest/wacksy/) for more details.
 
 ## Background
 
-According to [Ed Summers](https://inkdroid.org/2022/07/09/wacz-images/), a ᴡᴀᴄᴢ file is "really just [a ᴢɪᴘ file](https://chaos.social/@ki/111680421462204605) that contains ᴡᴀʀᴄ data and metadata at predicatble file locations."[^code4lib_talk]
+According to [Ed Summers](https://inkdroid.org/2022/07/09/wacz-images/), a ᴡᴀᴄᴢ file is "really just [a ᴢɪᴘ file](https://chaos.social/@ki/111680421462204605) that contains ᴡᴀʀᴄ data and metadata at predictable file locations."[^code4lib_talk]
 
 The [example in the spec](https://specs.webrecorder.net/wacz/1.1.1/) outlines what a ᴡᴀᴄᴢ file should contain:
 
