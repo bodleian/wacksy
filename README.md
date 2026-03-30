@@ -1,7 +1,7 @@
 # Wacksy
 
 [![Software Heritage Archive](https://archive.softwareheritage.org/badge/origin/https://github.com/bodleian/wacksy/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/bodleian/wacksy)
-![Deps.rs Crate Dependencies (latest)](https://img.shields.io/deps-rs/wacksy/latest)
+[![dependency status](https://deps.rs/crate/wacksy/latest/status.svg)](https://deps.rs/crate/wacksy/latest)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/wacksy)
 
 An experimental Rust library for ~~reading and~~ writing ᴡᴀᴄᴢ files.
