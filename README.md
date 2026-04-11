@@ -58,4 +58,6 @@ pages
 
 ## License
 
-[MIT](https://github.com/bodleian/wacksy/blob/main/LICENSE) © [Bodleian Libraries](https://www.bodleian.ox.ac.uk/) and contributors
+[MIT](https://github.com/bodleian/wacksy/blob/main/LICENSE) © [Bodleian Libraries](https://www.bodleian.ox.ac.uk/) and contributors.
+
+Generative AI tools have not been used in the production of this software.
