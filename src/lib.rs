@@ -29,7 +29,7 @@ use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::indexer,
+    indexer::{IndexRecord, indexer},
 };
 
 /// Set the WACZ version of the file being created,
@@ -42,10 +42,17 @@ pub struct WACZ {
     pub datapackage_digest: DataPackageDigest,
 }
 impl WACZ {
-    /// # Create WACZ from WARC file
+    /// # Create WACZ from a single WARC file
     ///
-    /// This is the main function of the library, it takes a path to a WARC file,
-    /// reads through it to produce CDXJ and page.json indexes. Everything is
+    /// Wrapper around from_files for backwards compatability.
+    pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
+        WACZ::from_files(&[warc_file_path])
+    }
+
+    /// # Create WACZ from one or more WARC files
+    ///
+    /// This is the main function of the library, it takes a slice of paths to WARC files,
+    /// reads through them to produce CDXJ and page.json indexes. Everything is
     /// wrapped into a [datapackage], and then wrapped _again_ into a [WACZ] struct.
     ///
     /// # Errors
@@ -54,28 +61,35 @@ impl WACZ {
     /// indexer (structured errors to-do) or the [datapackage](DataPackageError). As the
     /// datapackage depends on the index being complete, any problem with the
     /// indexer will return early without continuing.
-    pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
-        // check whether the file exists at the given path
-        if warc_file_path.exists() {
-            let index = indexer(warc_file_path);
-            let datapackage: DataPackage = match DataPackage::new(warc_file_path, &index) {
-                Ok(datapackage) => datapackage,
-                Err(datapackage_error) => {
-                    return Err(WaczError::DataPackageError(datapackage_error));
-                }
-            };
-            let datapackage_digest = datapackage.digest();
-
-            return Ok(Self {
-                datapackage,
-                datapackage_digest,
-            });
-        } else {
-            // the filepath doesn't exist so return with error
-            let file_path_string = warc_file_path.to_string_lossy().to_string();
-            return Err(WaczError::WarcFileError(file_path_string));
+    pub fn from_files(warc_file_paths: &[&Path]) -> Result<Self, WaczError> {
+        // Check that at least one WARC is provided
+        if warc_file_paths.is_empty() {
+            return Err(WaczError::WarcFileError("No file".to_string()));
         }
+
+        // Check that all files exist - if not, then return an error
+        let missing_paths: Vec<String> = warc_file_paths.iter().filter(|p| !p.exists()).map(|p| p.to_string_lossy().to_string()).collect();
+        if missing_paths.len() > 0 {
+            return Err(WaczError::WarcFileError(missing_paths.join(", ")))
+        }
+
+        // Generate WACZ
+        let index: Vec<IndexRecord> = warc_file_paths.into_iter().flat_map(|p| indexer(p)).collect();
+        
+        let datapackage: DataPackage = match DataPackage::new(warc_file_paths, &index) {
+            Ok(datapackage) => datapackage,
+            Err(datapackage_error) => {
+                return Err(WaczError::DataPackageError(datapackage_error));
+            }
+        };
+        let datapackage_digest = datapackage.digest();
+
+        Ok(Self {
+            datapackage,
+            datapackage_digest,
+        })
     }
+
     /// # Zipper
     ///
     /// Takes a WACZ struct and zips up every element into a zip file.
