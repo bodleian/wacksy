@@ -6,9 +6,9 @@
 //! # use std::io::{Cursor, Write as _};
 //! # use wacksy::WACZ;
 //! # fn main() -> Result<(), Box<dyn Error>> {
-//! let warc_file_path = std::path::Path::new("tests/example.warc.gz"); // set path to your ᴡᴀʀᴄ file
-//! let wacz_object = WACZ::from_file(warc_file_path)?; // index the ᴡᴀʀᴄ and create a ᴡᴀᴄᴢ object
-//! let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?; // zip up the ᴡᴀᴄᴢ
+//! let warc_file_path = std::path::Path::new("tests/example.warc.gz"); // set path to your WARC file
+//! let wacz_object = WACZ::from_files(&[warc_file_path])?; // index the WARC and create a WACZ object - multiple WARC files can be specified here
+//! let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?; // zip up the WACZ
 //! let mut wacz_file = fs::File::create("tests/example.wacz")?;
 //! # let mut wacz_file = Cursor::new(vec![0; 2048]);
 //! wacz_file.write_all(&zipped_wacz)?; // write out to file
