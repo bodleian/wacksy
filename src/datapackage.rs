@@ -84,36 +84,38 @@ impl DataPackage {
     /// Will return a `DataPackageError` relating to any
     /// resource if there is anything wrong with the filename
     /// or path of a resource.
-    pub fn new(warc_file_path: &Path, index: &[IndexRecord]) -> Result<Self, DataPackageError> {
+    pub fn new(warc_file_paths: &[&Path], index: &[IndexRecord]) -> Result<Self, DataPackageError> {
         let mut data_package = Self::default();
 
-        let warc_file_bytes = match fs::read(warc_file_path) {
-            Ok(bytes) => bytes,
-            Err(error) => return Err(DataPackageError::FileReadError(error)),
-        };
+        for warc_file_path in warc_file_paths.iter() {
+            let warc_file_bytes = match fs::read(warc_file_path) {
+                Ok(bytes) => bytes,
+                Err(error) => return Err(DataPackageError::FileReadError(error)),
+            };
 
-        let warc_file_name = match warc_file_path.file_name() {
-            Some(file_name) => match file_name.to_str() {
-                Some(file_name) => file_name.to_owned(),
+            let warc_file_name = match warc_file_path.file_name() {
+                Some(file_name) => match file_name.to_str() {
+                    Some(file_name) => file_name.to_owned(),
+                    None => {
+                        return Err(DataPackageError::FileNameError(format!(
+                            "unable to convert {} to string",
+                            file_name.display()
+                        )));
+                    }
+                },
                 None => {
-                    return Err(DataPackageError::FileNameError(format!(
-                        "unable to convert {} to string",
-                        file_name.display()
-                    )));
+                    return Err(DataPackageError::FileNameError(
+                        "file name is empty".to_owned(),
+                    ));
                 }
-            },
-            None => {
-                return Err(DataPackageError::FileNameError(
-                    "file name is empty".to_owned(),
-                ));
-            }
-        };
-
-        // Add Warc file to datapackage
-        Self::add_resource(
-            &mut data_package,
-            DataPackageResource::new(ResourceType::Warc, &warc_file_name, &warc_file_bytes)?,
-        );
+            };
+            
+            // Add Warc file to datapackage
+            Self::add_resource(
+                &mut data_package,
+                DataPackageResource::new(ResourceType::Warc, &warc_file_name, &warc_file_bytes)?,
+            );
+        }
 
         // Add CDXJ file to datapackage
         Self::add_resource(
@@ -293,7 +295,7 @@ mod tests {
         pub fn create_datapackage() -> DataPackage {
             let warc_file_path: &Path = Path::new("tests/example.warc.gz");
             let index = indexer(warc_file_path);
-            return DataPackage::new(&warc_file_path, &index).unwrap();
+            return DataPackage::new(&[&warc_file_path], &index).unwrap();
         }
     }
 
