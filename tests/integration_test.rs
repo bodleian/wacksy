@@ -7,6 +7,7 @@ use wacksy::{
 
 const WARC_PATH: &str = "tests/example.warc.gz";
 
+#[cfg(target_family = "windows")]
 fn normalize_newlines(s: String) -> String {
     s.replace("\r\n", "\n")
 }
@@ -16,8 +17,15 @@ fn create_cdxj_index() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let warc_file_path: &Path = Path::new(WARC_PATH);
     let index = indexer(warc_file_path);
     let generated_cdxj_index = to_cdxj_string(&index);
+
+    #[cfg(target_family = "windows")]
+    let example_cdxj_index = normalize_newlines(fs::read_to_string(Path::new(
+        "tests/wacz_example/indexes/index.cdxj",
+    ))?);
+    #[cfg(not(target_family = "windows"))]
     let example_cdxj_index =
-        normalize_newlines(fs::read_to_string(Path::new("tests/wacz_example/indexes/index.cdxj"))?);
+        fs::read_to_string(Path::new("tests/wacz_example/indexes/index.cdxj"))?;
+
     assert_eq!(generated_cdxj_index, example_cdxj_index);
     Ok(())
 }
