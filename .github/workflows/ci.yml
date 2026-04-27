@@ -53,7 +53,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Cargo test
-        run: cargo test --locked
+        run: cargo run tests/example.warc.gz 
 
       - name: Validate wacz file with unzip
         run: unzip -t tests/output.wacz
@@ -68,7 +68,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Cargo test
-        run: cargo test --locked
+        run: cargo run tests/example.warc.gz 
 
       - name: Setup py-wacz
         uses: actions/setup-python@v6
