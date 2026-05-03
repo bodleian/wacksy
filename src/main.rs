@@ -10,11 +10,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap_or_else(|| "output.wacz".into());
 
     let mut skip_next = false;
-    let warc_args: Vec<_> = raw_args.iter().filter(|a| {
-        if skip_next { skip_next = false; return false; }
-        if *a == "--output" { skip_next = true; return false; }
-        true
-    }).collect();
+    let warc_args: Vec<_> = raw_args
+        .iter()
+        .filter(|a| {
+            if skip_next {
+                skip_next = false;
+                return false;
+            }
+            if *a == "--output" {
+                skip_next = true;
+                return false;
+            }
+            true
+        })
+        .collect();
 
     if warc_args.is_empty() {
         eprintln!("Usage: wacksy <file.warc.gz> [--output out.wacz]");

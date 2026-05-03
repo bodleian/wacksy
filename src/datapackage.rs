@@ -109,7 +109,7 @@ impl DataPackage {
                     ));
                 }
             };
-            
+
             // Add Warc file to datapackage
             Self::add_resource(
                 &mut data_package,

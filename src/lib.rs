@@ -68,14 +68,21 @@ impl WACZ {
         }
 
         // Check that all files exist - if not, then return an error
-        let missing_paths: Vec<String> = warc_file_paths.iter().filter(|p| !p.exists()).map(|p| p.to_string_lossy().to_string()).collect();
+        let missing_paths: Vec<String> = warc_file_paths
+            .iter()
+            .filter(|p| !p.exists())
+            .map(|p| p.to_string_lossy().to_string())
+            .collect();
         if missing_paths.len() > 0 {
-            return Err(WaczError::WarcFileError(missing_paths.join(", ")))
+            return Err(WaczError::WarcFileError(missing_paths.join(", ")));
         }
 
         // Generate WACZ
-        let index: Vec<IndexRecord> = warc_file_paths.into_iter().flat_map(|p| indexer(p)).collect();
-        
+        let index: Vec<IndexRecord> = warc_file_paths
+            .into_iter()
+            .flat_map(|p| indexer(p))
+            .collect();
+
         let datapackage: DataPackage = match DataPackage::new(warc_file_paths, &index) {
             Ok(datapackage) => datapackage,
             Err(datapackage_error) => {
