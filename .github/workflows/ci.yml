@@ -73,6 +73,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Create sample WACZ collections
+        run: |
           cargo run tests/example.warc.gz --output tests/output_single_warc.wacz
           cargo run tests/example.warc.gz tests/example2.warc.gz ---output tests/output_multiple_warcs.wacz
 
