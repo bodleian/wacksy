@@ -5,6 +5,7 @@
 //! > The file **must** be present at the root of the WACZ which serves as the manifest for the web archive
 //! > and is compliant with the [FRICTIONLESS-DATA-PACKAGE](https://specs.frictionlessdata.io/data-package/) specification.
 
+use base16ct::HexDisplay;
 use chrono::Local;
 use sha2::{Digest as _, Sha256};
 use std::{error::Error, fmt, fs, path::Path};
@@ -154,7 +155,7 @@ impl DataPackage {
     pub fn digest(&self) -> DataPackageDigest {
         return DataPackageDigest {
             path: "datapackage.json".to_owned(),
-            hash: format!("sha256:{:x}", Sha256::digest(self.to_string())),
+            hash: format!("sha256:{:x}", HexDisplay(&Sha256::digest(self.to_string()))),
         };
     }
 }
@@ -228,7 +229,7 @@ impl DataPackageResource {
 
         return Ok(Self {
             path,
-            hash: format!("sha256:{:x}", Sha256::digest(file_bytes)),
+            hash: format!("sha256:{:x}", HexDisplay(&Sha256::digest(file_bytes))),
             bytes: file_bytes.len(),
             content: file_bytes.to_vec(),
             resource_type,
