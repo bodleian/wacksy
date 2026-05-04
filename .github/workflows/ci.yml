@@ -52,11 +52,16 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       
-      - name: Cargo test
-        run: cargo run tests/example.warc.gz 
+      - name: Create sample WACZ collections
+        run: |
+          cargo run tests/example.warc.gz --output tests/output_single_warc.wacz
+          cargo run tests/example.warc.gz tests/example2.warc.gz --output tests/output_multiple_warcs.wacz
 
       - name: Validate wacz file with unzip
-        run: unzip -t tests/output.wacz
+        run: |
+          unzip -tv tests/output_single_warc.wacz
+          unzip -tv tests/output_multiple_warcs.wacz
+          
 
   test_wacz:
     runs-on: ubuntu-24.04-arm
@@ -67,8 +72,10 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       
-      - name: Cargo test
-        run: cargo run tests/example.warc.gz 
+      - name: Create sample WACZ collections
+        run: |
+          cargo run tests/example.warc.gz --output tests/output_single_warc.wacz
+          cargo run tests/example.warc.gz tests/example2.warc.gz --output tests/output_multiple_warcs.wacz
 
       - name: Setup py-wacz
         uses: actions/setup-python@v6
@@ -78,4 +85,6 @@ jobs:
       - run: pip install -r tests/requirements.txt
 
       - name: Validate wacz file with py-wacz
-        run: wacz validate -f tests/output.wacz
+        run: |
+          wacz validate -f tests/output_single_warc.wacz
+          wacz validate -f tests/output_multiple_warcs.wacz
