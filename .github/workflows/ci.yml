@@ -53,10 +53,12 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Cargo test
-        run: cargo run tests/example.warc.gz 
+        run: |
+          cargo run tests/example.warc.gz --output output.wacz
+          ls
 
       - name: Validate wacz file with unzip
-        run: unzip -t tests/output.wacz
+        run: unzip -tv tests/output.wacz
 
   test_wacz:
     runs-on: ubuntu-24.04-arm
