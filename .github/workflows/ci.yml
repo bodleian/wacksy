@@ -1,20 +1,16 @@
 name: "Check Rust code"
 
 on:
-  workflow_dispatch:
-    inputs:
-      parameter:
-        description: Run manually
   push:
-  #   branches:
-  #   - main
-  #   paths:
-  #   - '**.rs'
-  # pull_request:
-  #   branches:
-  #   - "main"
-  #   paths:
-  #   - '**.rs'
+    branches:
+    - main
+    paths:
+    - '**.rs'
+  pull_request:
+    branches:
+    - "main"
+    paths:
+    - '**.rs'
     
 env:
   CARGO_TERM_COLOR: always
