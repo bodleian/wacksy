@@ -59,7 +59,7 @@ jobs:
       - name: Create sample WACZ collections
         run: |
           cargo run tests/example.warc.gz --output tests/output_single_warc.wacz
-          cargo run tests/example.warc.gz tests/example2.warc.gz ---output tests/output_multiple_warcs.wacz
+          cargo run tests/example.warc.gz tests/example2.warc.gz --output tests/output_multiple_warcs.wacz
 
       - name: Validate wacz file with unzip
         run: |
@@ -79,7 +79,7 @@ jobs:
       - name: Create sample WACZ collections
         run: |
           cargo run tests/example.warc.gz --output tests/output_single_warc.wacz
-          cargo run tests/example.warc.gz tests/example2.warc.gz ---output tests/output_multiple_warcs.wacz
+          cargo run tests/example.warc.gz tests/example2.warc.gz --output tests/output_multiple_warcs.wacz
 
       - name: Setup py-wacz
         uses: actions/setup-python@v6
