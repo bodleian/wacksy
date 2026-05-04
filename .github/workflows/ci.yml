@@ -11,6 +11,7 @@ on:
     - "main"
     paths:
     - '**.rs'
+  workflow_dispatch
     
 env:
   CARGO_TERM_COLOR: always
