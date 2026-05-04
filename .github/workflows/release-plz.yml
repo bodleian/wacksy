@@ -6,9 +6,10 @@ on:
       - main
     paths:
     - '**/Cargo.toml'
+    tags:        
+    - 'v*'
 
 jobs:
-
   # Release unpublished packages.
   release-plz-release:
     name: Release-plz release
