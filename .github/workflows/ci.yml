@@ -54,7 +54,7 @@ jobs:
       
       - name: Cargo test
         run: |
-          cargo run tests/example.warc.gz --output output.wacz
+          cargo run tests/example.warc.gz --output tests/output.wacz
           ls
 
       - name: Validate wacz file with unzip
@@ -70,7 +70,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Cargo test
-        run: cargo run tests/example.warc.gz 
+        run: cargo run tests/example.warc.gz --output tests/output.wacz
 
       - name: Setup py-wacz
         uses: actions/setup-python@v6
