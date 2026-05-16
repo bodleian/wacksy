@@ -44,9 +44,9 @@ pub struct WACZ {
 impl WACZ {
     /// # Create WACZ from a single WARC file
     ///
-    /// Wrapper around from_files for backwards compatability.
+    /// Wrapper around `from_files` for backwards compatability.
     pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
-        WACZ::from_files(&[warc_file_path])
+        Self::from_files(&[warc_file_path])
     }
 
     /// # Create WACZ from one or more WARC files
@@ -73,13 +73,13 @@ impl WACZ {
             .filter(|p| !p.exists())
             .map(|p| p.to_string_lossy().to_string())
             .collect();
-        if missing_paths.len() > 0 {
+        if !missing_paths.is_empty() {
             return Err(WaczError::WarcFileError(missing_paths.join(", ")));
         }
 
         // Generate WACZ
         let index: Vec<IndexRecord> = warc_file_paths
-            .into_iter()
+            .iter()
             .flat_map(|p| indexer(p))
             .collect();
 

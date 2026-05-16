@@ -88,7 +88,7 @@ impl DataPackage {
     pub fn new(warc_file_paths: &[&Path], index: &[IndexRecord]) -> Result<Self, DataPackageError> {
         let mut data_package = Self::default();
 
-        for warc_file_path in warc_file_paths.iter() {
+        for warc_file_path in warc_file_paths {
             let warc_file_bytes = match fs::read(warc_file_path) {
                 Ok(bytes) => bytes,
                 Err(error) => return Err(DataPackageError::FileReadError(error)),

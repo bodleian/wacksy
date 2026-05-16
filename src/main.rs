@@ -3,11 +3,11 @@ use wacksy::WACZ;
 fn main() -> Result<(), Box<dyn Error>> {
     let raw_args: Vec<_> = env::args_os().skip(1).collect();
 
+    #[allow(clippy::implicit_return)]
     let output_path = raw_args
         .windows(2)
         .find(|w| w[0] == "--output")
-        .map(|w| w[1].clone())
-        .unwrap_or_else(|| "output.wacz".into());
+        .map_or_else(|| "output.wacz".into(), |w| w[1].clone());
 
     let mut skip_next = false;
     let warc_args: Vec<_> = raw_args
@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 skip_next = true;
                 return false;
             }
-            true
+            return true
         })
         .collect();
 
@@ -34,5 +34,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     let wacz_object = WACZ::from_files(&warc_file_paths)?;
     let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?;
     std::fs::write(&output_path, zipped_wacz)?;
-    Ok(())
+    return Ok(())
 }
