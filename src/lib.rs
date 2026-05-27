@@ -78,10 +78,7 @@ impl WACZ {
         }
 
         // Generate WACZ
-        let index: Vec<IndexRecord> = warc_file_paths
-            .iter()
-            .flat_map(|p| indexer(p))
-            .collect();
+        let index: Vec<IndexRecord> = warc_file_paths.iter().flat_map(|p| indexer(p)).collect();
 
         let datapackage: DataPackage = match DataPackage::new(warc_file_paths, &index) {
             Ok(datapackage) => datapackage,

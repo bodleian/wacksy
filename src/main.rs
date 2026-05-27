@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 skip_next = true;
                 return false;
             }
-            return true
+            return true;
         })
         .collect();
 
@@ -34,5 +34,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     let wacz_object = WACZ::from_files(&warc_file_paths)?;
     let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?;
     std::fs::write(&output_path, zipped_wacz)?;
-    return Ok(())
+    return Ok(());
 }
