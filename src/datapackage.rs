@@ -34,7 +34,7 @@ pub struct DataPackage {
 #[derive(Debug)]
 pub struct DataPackageResource {
     pub path: String,
-    pub file_name: &str,
+    pub file_name: String,
     pub resource_type: ResourceType,
     pub hash: String,
     pub bytes: usize,
@@ -115,7 +115,7 @@ impl DataPackage {
             // Add Warc file to datapackage
             Self::add_resource(
                 &mut data_package,
-                DataPackageResource::new(ResourceType::Warc, &warc_file_name, &warc_file_bytes)?,
+                DataPackageResource::new(ResourceType::Warc, warc_file_name, &warc_file_bytes)?,
             );
         }
 
@@ -124,7 +124,7 @@ impl DataPackage {
             &mut data_package,
             DataPackageResource::new(
                 ResourceType::CDXJ,
-                "index.cdxj",
+                "index.cdxj".to_string(),
                 &to_cdxj_string(index).into_bytes(),
             )?,
         );
@@ -134,7 +134,7 @@ impl DataPackage {
             &mut data_package,
             DataPackageResource::new(
                 ResourceType::Pages,
-                "pages.jsonl",
+                "pages.jsonl".to_string(),
                 &to_pages_json_string(index).into_bytes(),
             )?,
         );
@@ -214,7 +214,7 @@ impl DataPackageResource {
     /// be converted to string.
     pub fn new(
         resource_type: ResourceType,
-        file_name: &str,
+        file_name: String,
         file_bytes: &[u8],
     ) -> Result<Self, DataPackageError> {
         // Add resource location to path. This
@@ -226,7 +226,7 @@ impl DataPackageResource {
             ResourceType::Warc => "archive/",
         }
         .to_owned();
-        path.push_str(file_name);
+        path.push_str(&file_name);
 
         return Ok(Self {
             path,
