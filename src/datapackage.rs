@@ -11,8 +11,8 @@ use sha2::{Digest as _, Sha256};
 use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
+    indexer::{to_cdxj_string, to_pages_json_string, IndexRecord},
     WACZ_VERSION,
-    indexer::{IndexRecord, to_cdxj_string, to_pages_json_string},
 };
 
 /// The main datapackage struct.
@@ -34,11 +34,12 @@ pub struct DataPackage {
 #[derive(Debug)]
 pub struct DataPackageResource {
     pub path: String,
+    pub file_name: &str,
     pub resource_type: ResourceType,
     pub hash: String,
     pub bytes: usize,
     /// The raw content of the resource in bytes,
-    /// not passed through to serde when serialising to JSON.
+    /// not passed through `Display` when writing JSON.
     pub content: Vec<u8>,
 }
 
@@ -229,6 +230,7 @@ impl DataPackageResource {
 
         return Ok(Self {
             path,
+            file_name,
             hash: format!("sha256:{:x}", HexDisplay(&Sha256::digest(file_bytes))),
             bytes: file_bytes.len(),
             content: file_bytes.to_vec(),
@@ -241,7 +243,7 @@ impl fmt::Display for DataPackageResource {
         let name = match self.resource_type {
             ResourceType::CDXJ => "crawl_index",
             ResourceType::Pages => "pages_file",
-            ResourceType::Warc => "web_archive_file",
+            ResourceType::Warc => &self.file_name,
         };
         return write!(
             message,
@@ -296,7 +298,7 @@ mod tests {
         pub fn create_datapackage() -> DataPackage {
             let warc_file_path: &Path = Path::new("tests/example.warc.gz");
             let index = indexer(warc_file_path);
-            return DataPackage::new(&[&warc_file_path], &index).unwrap();
+            return DataPackage::new(&[warc_file_path], &index).unwrap();
         }
     }
 
@@ -323,7 +325,7 @@ mod tests {
         // Boolean result
         assert!(jsonschema::draft4::is_valid(&schema, &instance));
 
-        Ok(())
+        return Ok(());
     }
 
     /// This test creates a datapackage digest and validates it against a schema I've made up.
@@ -349,6 +351,6 @@ mod tests {
         // Boolean result
         assert!(jsonschema::draft202012::is_valid(&schema, &instance));
 
-        Ok(())
+        return Ok(());
     }
 }
