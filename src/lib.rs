@@ -17,7 +17,7 @@
 //! # }
 //!
 #![doc(
-    html_logo_url = "https://www.ox.ac.uk/sites/default/themes/custom/oxweb/images/oxweb-logo.gif",
+    html_logo_url = "https://www.ox.ac.uk/themes/custom/numiko/dist/oxford-logo-DzIWfeXH.svg",
     html_favicon_url = "https://www.bodleian.ox.ac.uk/sites/default/files/styles/favicon-32x32/public/bodreader/site-favicon/bod-favicon.png"
 )]
 
