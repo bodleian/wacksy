@@ -29,7 +29,7 @@ use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::{IndexRecord, indexer},
+    indexer::{indexer, IndexRecord},
 };
 
 /// Set the WACZ version of the file being created,
@@ -46,7 +46,7 @@ impl WACZ {
     ///
     /// Wrapper around `from_files` for backwards compatability.
     pub fn from_file(warc_file_path: &Path) -> Result<Self, WaczError> {
-        Self::from_files(&[warc_file_path])
+        return Self::from_files(&[warc_file_path]);
     }
 
     /// # Create WACZ from one or more WARC files
@@ -58,27 +58,32 @@ impl WACZ {
     /// # Errors
     ///
     /// Returns a [`WaczError`], which can be caused by a problem in either the
-    /// indexer (structured errors to-do) or the [datapackage](DataPackageError). As the
-    /// datapackage depends on the index being complete, any problem with the
-    /// indexer will return early without continuing.
+    /// indexer (structured errors to-do) or the [datapackage](DataPackageError).
+    /// As the datapackage depends on the index being complete, any problem
+    /// with the indexer will return early without continuing.
     pub fn from_files(warc_file_paths: &[&Path]) -> Result<Self, WaczError> {
         // Check that at least one WARC is provided
         if warc_file_paths.is_empty() {
             return Err(WaczError::WarcFileError("No file".to_string()));
         }
 
-        // Check that all files exist - if not, then return an error
+        // Check that all files exist - if not, then return an error.
+        // This is probably not the place we want to check for this
+        // error, to avoid TOCTU mistakes.
         let missing_paths: Vec<String> = warc_file_paths
             .iter()
-            .filter(|p| !p.exists())
-            .map(|p| p.to_string_lossy().to_string())
+            .filter(|path| !path.exists())
+            .map(|path| path.to_string_lossy().to_string())
             .collect();
         if !missing_paths.is_empty() {
             return Err(WaczError::WarcFileError(missing_paths.join(", ")));
         }
 
         // Generate WACZ
-        let index: Vec<IndexRecord> = warc_file_paths.iter().flat_map(|p| indexer(p)).collect();
+        let index: Vec<IndexRecord> = warc_file_paths
+            .iter()
+            .flat_map(|path| indexer(path))
+            .collect();
 
         let datapackage: DataPackage = match DataPackage::new(warc_file_paths, &index) {
             Ok(datapackage) => datapackage,
@@ -88,10 +93,10 @@ impl WACZ {
         };
         let datapackage_digest = datapackage.digest();
 
-        Ok(Self {
+        return Ok(Self {
             datapackage,
             datapackage_digest,
-        })
+        });
     }
 
     /// # Zipper
