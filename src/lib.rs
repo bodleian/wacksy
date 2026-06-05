@@ -29,7 +29,7 @@ use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::{indexer, IndexRecord},
+    indexer::{IndexRecord, indexer},
 };
 
 /// Set the WACZ version of the file being created,
