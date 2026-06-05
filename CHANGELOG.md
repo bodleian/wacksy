@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.0) - 2026-06-05
+
+This release adds a new feature: writing multiple WARC files into one collection ([#84](https://github.com/bodleian/wacksy/pull/84)). The singular `WACZ::from_file()` function is now joined by `WACZ::from_files()`. Multi-file collections can be created on the command line by listing WARC files, then the output WACZ filename prepended by `--output`.
+
+This feature was contributed by @jamesdbaker from the University of Southampton [Digital Humanities Hub]](https://www.southampton.ac.uk/research/institutes-centres/digital-humanities). Thank you!
+
+Indexing multiple WARCs ended up creating a datapackage which did not pass frictionless data validation, because each datapackage resource did not have a unique name ([#88](https://github.com/bodleian/wacksy/issues/88)). I've partly resolved this by passing through the filename to the name field. This is not an ideal solution though, because while file _paths_ are unique, you might have multiple same-named files in different folders. Should that scenario result in an error? I'm open to suggestions on better ways to handle this.
+
+### Other Changes
+
+- Tests pass on Windows now, again thanks to James, and this leads on to...
+- This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**. If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
+- The link to the Oxford University logo on docs.rs was broken, and now updated ([#93](https://github.com/bodleian/wacksy/issues/93)). I should check this link as part of CI runs.
+- Various style changes. I'm aware that the indexer in particular is due some refactoring and I've left some todo comments in the code.
+
+### Dependencies
+
+I updated sha2 dependency to version 0.11 ([#87](https://github.com/bodleian/wacksy/issues/87)), and this newer version removed the trait for formatting hashes as hex strings. So, I have _added_ the [base16ct](https://docs.rs/base16ct/latest/base16ct/) crate as a new dependency to do the formatting.
+
+### Development
+
+At the end of 2025 my contract at the Bodleian ended and I got a new job at a different organisation.
+I am continuing to maintain this as a volunteer effort, but with limited free time in the evenings, development is a lot slower.
+
 ## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.2.0) - 2025-11-20
 
 The main thing in this release is a rewrite of the WARC parser/indexer ([#70](https://github.com/bodleian/wacksy/pull/70)). The rewrite was motivated by a need to correctly find the byte offset of a WARC record in a gzip archive, which I couldn't do with the `WarcReader` trait. In order to find the offset of a record _before decompression_ I need to keep track of the underlying reader, and once I'd gone down that road it turned out far easier to just carry on writing a parser.
