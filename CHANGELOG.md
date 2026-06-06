@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.4](https://github.com/bodleian/wacksy/compare/v0.3.2...v0.3.4) - 2026-06-06
 
- This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**. If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
+This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**. If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
 
 ## [0.3.2](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.2) - 2026-06-06
 
 This release adds a new feature: writing multiple WARC files into one collection ([#84](https://github.com/bodleian/wacksy/pull/84)). The singular `WACZ::from_file()` function is now joined by `WACZ::from_files()`. Multi-file collections can be created on the command line by listing WARC files, then the output WACZ filename prepended by `--output`.
 
-This feature was contributed by @jamesdbaker from the University of Southampton [Digital Humanities Hub]](https://www.southampton.ac.uk/research/institutes-centres/digital-humanities). Thank you!
+This feature was contributed by @jamesdbaker. Thank you!
 
 Indexing multiple WARCs ended up creating a datapackage which did not pass frictionless data validation, because each datapackage resource did not have a unique name ([#88](https://github.com/bodleian/wacksy/issues/88)). I've partly resolved this by passing through the filename to the name field. This is not an ideal solution though, because while file _paths_ are unique, you might have multiple same-named files in different folders. Should that scenario result in an error? I'm open to suggestions on better ways to handle this.
 
