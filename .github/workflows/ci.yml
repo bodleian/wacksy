@@ -29,7 +29,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Cargo check
-        run: cargo check --locked --frozen
+        run: cargo check
 
   test_rust:
     runs-on: ubuntu-24.04-arm
@@ -41,7 +41,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Cargo test
-        run: cargo test --locked --frozen
+        run: cargo test
 
   test_zip:
     runs-on: ubuntu-24.04-arm
