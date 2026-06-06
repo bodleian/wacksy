@@ -1,7 +1,8 @@
 name: Continuous Deployment
 
-# This should run when I save the draft release?
+# Allow triggering this manually
 on:
+  workflow_dispatch:
   release:
     types: [created]
 
