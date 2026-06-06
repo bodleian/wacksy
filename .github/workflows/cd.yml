@@ -1,7 +1,7 @@
 name: Continuous Deployment
 
 # Just for now run the release on pushes to the workflow directory
-# ie. it should run when I push this file
+# ie. it should run when I push this file?
 on:
   # release:
   #   types: [created]
