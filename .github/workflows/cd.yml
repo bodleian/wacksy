@@ -1,8 +1,13 @@
 name: Continuous Deployment
 
+# Just for now run the release on pushes to the workflow directory
+# ie. it should run when I push this file
 on:
-  release:
-    types: [created]
+  # release:
+  #   types: [created]
+  push:
+    paths:
+      - '.github/*'
 
 env:
   CARGO_INCREMENTAL: 0
