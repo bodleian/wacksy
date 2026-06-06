@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.1](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.1) - 2026-06-06
+## [0.3.2](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.2) - 2026-06-06
 
 This release adds a new feature: writing multiple WARC files into one collection ([#84](https://github.com/bodleian/wacksy/pull/84)). The singular `WACZ::from_file()` function is now joined by `WACZ::from_files()`. Multi-file collections can be created on the command line by listing WARC files, then the output WACZ filename prepended by `--output`.
 
@@ -29,7 +29,9 @@ I updated sha2 dependency to version 0.11 ([#87](https://github.com/bodleian/wac
 ### Development
 
 At the end of 2025 my contract at the Bodleian ended and I got a new job at a different organisation.
-I am continuing to maintain this as a volunteer effort, but with limited free time in the evenings, development is a lot slower.
+I've removed my Oxford University affiliation from the citation file.
+I am continuing to maintain this as a volunteer effort, but with limited free time in the evenings.
+Last year I was doing releases every month; this year development is much slower.
 
 ## [0.2.0](https://github.com/bodleian/wacksy/compare/v0.1.3...v0.2.0) - 2025-11-20
 
