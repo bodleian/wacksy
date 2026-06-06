@@ -2,8 +2,9 @@ name: Continuous Deployment
 
 # Run this on creation of a new tag
 on:
+  workflow_dispatch:
   push:
-    tags:        
+    tags:
       - '*' 
 
 env:
@@ -70,3 +71,4 @@ jobs:
           tar: all
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/tags/v0.3.4
