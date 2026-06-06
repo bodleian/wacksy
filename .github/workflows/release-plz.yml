@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-    - '**/Cargo.toml'
+      - '**/Cargo.toml'
     tags:        
-    - 'v*'
+      - 'v*'
 
 jobs:
   # Release unpublished packages.
