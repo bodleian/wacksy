@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.3](https://github.com/bodleian/wacksy/compare/v0.3.2...v0.3.3) - 2026-06-06
+## [0.3.4](https://github.com/bodleian/wacksy/compare/v0.3.2...v0.3.4) - 2026-06-06
 
  This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**. If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
 
