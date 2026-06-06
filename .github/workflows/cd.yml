@@ -1,11 +1,9 @@
 name: Continuous Deployment
 
-# Just for now run the release on pushes to the workflow directory
-# ie. it should run when I push this file?
+# This should run when I save the draft release?
 on:
-  push:
-    paths:
-      - '*.yml'
+  release:
+    types: [created]
 
 env:
   CARGO_INCREMENTAL: 0
