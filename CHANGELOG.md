@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.0) - 2026-06-05
+## [0.3.1](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.1) - 2026-06-06
 
 This release adds a new feature: writing multiple WARC files into one collection ([#84](https://github.com/bodleian/wacksy/pull/84)). The singular `WACZ::from_file()` function is now joined by `WACZ::from_files()`. Multi-file collections can be created on the command line by listing WARC files, then the output WACZ filename prepended by `--output`.
 
