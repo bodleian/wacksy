@@ -1,4 +1,4 @@
-name: "Check Rust code"
+name: "Continuous Improvement"
 
 on:
   push:
