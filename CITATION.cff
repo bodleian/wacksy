@@ -15,8 +15,7 @@ type: software
 authors:
   - given-names: Pierre
     family-names: Marshall
-    email: 'pierre.marshall@bodleian.ox.ac.uk'
-    affiliation: Oxford University
+    email: 'pierre.marshall@gmail.com'
     orcid: 'https://orcid.org/0000-0001-9245-7670'
 repository-code: 'https://github.com/bodleian/wacksy'
 abstract: 'An experimental library for writing WACZ files.'
