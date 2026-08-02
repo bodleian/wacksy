@@ -23,13 +23,14 @@
 
 pub mod datapackage;
 pub mod indexer;
+mod time;
 use std::{error::Error, fmt, path::Path};
 
 use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::{IndexRecord, indexer},
+    indexer::{indexer, IndexRecord},
 };
 
 /// Set the WACZ version of the file being created,

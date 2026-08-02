@@ -6,12 +6,13 @@
 //! > and is compliant with the [FRICTIONLESS-DATA-PACKAGE](https://specs.frictionlessdata.io/data-package/) specification.
 
 use base16ct::HexDisplay;
-use chrono::Local;
 use sha2::{Digest as _, Sha256};
+use std::time::SystemTime;
 use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
     indexer::{to_cdxj_string, to_pages_json_string, IndexRecord},
+    time::seconds_to_rfc3399,
     WACZ_VERSION,
 };
 
@@ -67,10 +68,17 @@ impl fmt::Display for DataPackageDigest {
 
 impl Default for DataPackage {
     fn default() -> Self {
+        // Get system time
+        let seconds_from_epoch: u64 = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
+        {
+            Ok(n) => n.as_secs(),
+            Err(_) => panic!("Write a bettter error message here. SystemTime before UNIX EPOCH!"),
+        };
+
         return Self {
             profile: "data-package".to_owned(),
             wacz_version: WACZ_VERSION.to_owned(),
-            created: Local::now().to_rfc3339(),
+            created: seconds_to_rfc3399(seconds_from_epoch),
             software: format!("wacksy {}", env!("CARGO_PKG_VERSION")),
             resources: Vec::with_capacity(512),
         };
@@ -167,7 +175,7 @@ impl fmt::Display for DataPackage {
     //! {
     //!   "profile": "data-package",
     //!   "wacz_version": "1.1.1",
-    //!   "created": "2026-05-06T11:03:03.499792020+01:00",
+    //!   "created": "2026-05-06T11:03:03Z",
     //!   "software": "wacksy 0.3.4",
     //!   "resources": [
     //!     {
