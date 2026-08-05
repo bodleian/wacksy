@@ -78,7 +78,9 @@ pub fn seconds_to_rfc3399(seconds_from_epoch: u64) -> String {
         [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     };
 
-    // Loop through days per month and if days per
+    // Loop through days per month, increment months and subtract
+    // days until only days are left. There's a better way of doing
+    // this for sure!
     for days in &days_per_month {
         if datetime.day >= *days {
             datetime.day -= days;
@@ -122,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_is_leap_year() {
-        for year in [1972, 2000, 2004] {
+        for year in [1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024] {
             let test_datetime = DateTime {
                 year,
                 ..Default::default()
