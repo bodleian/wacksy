@@ -12,8 +12,8 @@ struct DateTime {
 impl DateTime {
     #[inline]
     const fn is_leap_year(self) -> bool {
-        self.year.is_multiple_of(400)
-            || (self.year.is_multiple_of(4) && !self.year.is_multiple_of(100))
+        return self.year.is_multiple_of(400)
+            || (self.year.is_multiple_of(4) && !self.year.is_multiple_of(100));
     }
 }
 impl fmt::Display for DateTime {
@@ -31,14 +31,14 @@ impl Default for DateTime {
     // This default state for DateTime is the Unix epoch:
     // 1970-01-01T00:00:00Z
     fn default() -> Self {
-        Self {
+        return Self {
             year: 1970,
             month: 1,
             day: 1,
             hour: 0,
             minute: 0,
             second: 0,
-        }
+        };
     }
 }
 // This function takes seconds since unix epoch and returns
@@ -124,12 +124,14 @@ mod tests {
 
     #[test]
     fn test_is_leap_year() {
-        for year in [1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024] {
+        for year in [
+            1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024,
+        ] {
             let test_datetime = DateTime {
                 year,
                 ..Default::default()
             };
-            assert!(test_datetime.is_leap_year())
+            assert!(test_datetime.is_leap_year());
         }
     }
 
@@ -140,7 +142,7 @@ mod tests {
                 year,
                 ..Default::default()
             };
-            assert!(!test_datetime.is_leap_year())
+            assert!(!test_datetime.is_leap_year());
         }
     }
 }
