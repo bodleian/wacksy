@@ -112,25 +112,19 @@ impl WACZ {
     pub fn as_zip_archive(&self) -> Result<Vec<u8>, rawzip::Error> {
         fn add_file_to_archive(
             archive: &mut ZipArchiveWriter<&mut Vec<u8>>,
-            compression_method: CompressionMethod,
             file_data: &[u8],
             file_path: &str,
         ) {
             // Start a new file in our zip archive.
             let (mut entry, config) = archive
                 .new_file(file_path)
-                .compression_method(compression_method)
+                .compression_method(CompressionMethod::STORE)
                 .start()
                 .unwrap();
 
-            let encoder = match compression_method {
-                CompressionMethod::STORE => &mut entry,
-                CompressionMethod::DEFLATE => todo!(), // provide a deflate encoder
-                _ => todo!(),                          // return an error
-            };
             // Wrap the file in a ZipDataWriter, which will track information for the
             // Zip data descriptor (like uncompressed size and CRC).
-            let mut writer = config.wrap(encoder);
+            let mut writer = config.wrap(&mut entry);
 
             // Copy the data to the writer.
             std::io::copy(&mut &*file_data, &mut writer).unwrap();
@@ -154,7 +148,6 @@ impl WACZ {
         for datapackage_resource in &self.datapackage.resources {
             add_file_to_archive(
                 &mut archive,
-                CompressionMethod::STORE,
                 &datapackage_resource.content,
                 &datapackage_resource.path,
             );
@@ -163,7 +156,6 @@ impl WACZ {
         // add datapackage file
         add_file_to_archive(
             &mut archive,
-            CompressionMethod::STORE,
             self.datapackage.to_string().as_bytes(),
             "datapackage.json",
         );
@@ -171,7 +163,6 @@ impl WACZ {
         // add digest file
         add_file_to_archive(
             &mut archive,
-            CompressionMethod::STORE,
             self.datapackage_digest.to_string().as_bytes(),
             "datapackage-digest.json",
         );
