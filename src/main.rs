@@ -3,6 +3,8 @@ use wacksy::WACZ;
 fn main() -> Result<(), Box<dyn Error>> {
     let raw_args: Vec<_> = env::args_os().skip(1).collect();
 
+    // This argument parsing is a bit gnarly, could definitely
+    // be refactored to be easier to read
     #[allow(clippy::implicit_return)]
     let output_path = raw_args
         .windows(2)
@@ -10,6 +12,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map_or_else(|| "output.wacz".into(), |w| w[1].clone());
 
     let mut skip_next = false;
+
     let warc_args: Vec<_> = raw_args
         .iter()
         .filter(|a| {
