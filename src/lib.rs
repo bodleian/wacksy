@@ -30,7 +30,7 @@ use rawzip::{CompressionMethod, ZipArchiveWriter};
 
 use crate::{
     datapackage::{DataPackage, DataPackageDigest, DataPackageError},
-    indexer::{indexer, IndexRecord},
+    indexer::{IndexRecord, indexer},
 };
 
 /// Set the WACZ version of the file being created,
@@ -124,8 +124,8 @@ impl WACZ {
                 .unwrap();
 
             let encoder = match compression_method {
-                CompressionMethod::Store => &mut entry,
-                CompressionMethod::Deflate => todo!(), // provide a deflate encoder
+                CompressionMethod::STORE => &mut entry,
+                CompressionMethod::DEFLATE => todo!(), // provide a deflate encoder
                 _ => todo!(),                          // return an error
             };
             // Wrap the file in a ZipDataWriter, which will track information for the
@@ -154,7 +154,7 @@ impl WACZ {
         for datapackage_resource in &self.datapackage.resources {
             add_file_to_archive(
                 &mut archive,
-                CompressionMethod::Store,
+                CompressionMethod::STORE,
                 &datapackage_resource.content,
                 &datapackage_resource.path,
             );
@@ -163,7 +163,7 @@ impl WACZ {
         // add datapackage file
         add_file_to_archive(
             &mut archive,
-            CompressionMethod::Store,
+            CompressionMethod::STORE,
             self.datapackage.to_string().as_bytes(),
             "datapackage.json",
         );
@@ -171,7 +171,7 @@ impl WACZ {
         // add digest file
         add_file_to_archive(
             &mut archive,
-            CompressionMethod::Store,
+            CompressionMethod::STORE,
             self.datapackage_digest.to_string().as_bytes(),
             "datapackage-digest.json",
         );
