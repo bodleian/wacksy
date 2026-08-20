@@ -27,6 +27,52 @@ impl fmt::Display for DateTime {
         )
     }
 }
+
+impl FromStr for DateTime {
+    type Err = DateTimeError;
+
+    fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
+        let year = datetime_string
+            .get(0..4)
+            .ok_or_else(|| DateTimeError::ParsingError())?
+            .parse::<u16>()?;
+
+        // Map
+
+        Ok(DateTime {
+            year,
+            ..Default::default()
+        })
+    }
+}
+
+#[derive(Debug)]
+enum DateTimeError {
+    ParsingError(ParseIntError),
+}
+
+impl fmt::Display for DateTimeError {
+    fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ParsingError(file_path) => {
+                return write!(message, "No file found at {file_path}");
+            }
+        }
+    }
+}
+impl Error for DateTimeError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::TimeParsingError(ParseIntError) => return None,
+        }
+    }
+}
+impl From<num::ParseIntError> for DateTimeError {
+    fn from(error: ParseIntError) -> Self {
+        DateTimeError::ParsingError(error)
+    }
+}
+
 impl Default for DateTime {
     // This default state for DateTime is the Unix epoch:
     // 1970-01-01T00:00:00Z
@@ -124,7 +170,9 @@ mod tests {
 
     #[test]
     fn test_is_leap_year() {
-        for year in [1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024] {
+        for year in [
+            1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024,
+        ] {
             let test_datetime = DateTime {
                 year,
                 ..Default::default()
