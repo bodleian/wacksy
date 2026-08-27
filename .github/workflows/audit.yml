@@ -15,6 +15,7 @@ on:
 
 jobs:
   audit:
+    name: "Audit dependencies for security issues"
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
@@ -26,5 +27,15 @@ jobs:
           sparse-checkout: |
             Cargo.toml
             Cargo.lock
-      - name: "Audit dependencies"
+      - name: "Run audit"
         uses: actions-rust-lang/audit@v1
+
+  shear:
+    name: "Identify unused dependencies"
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Install cargo-binstall
+      uses: cargo-bins/cargo-binstall@main
+    - name: Install cargo-shear
+      run: cargo binstall --no-confirm cargo-shear
+    - run: cargo shear --deny-warnings
