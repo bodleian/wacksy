@@ -25,6 +25,6 @@ jobs:
         with:
           sparse-checkout: |
             Cargo.toml
-          sparse-checkout-cone-mode: false
+            Cargo.lock
       - name: "Audit dependencies"
         uses: actions-rust-lang/audit@v1
