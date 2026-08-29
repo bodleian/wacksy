@@ -1,4 +1,7 @@
+use std::error::Error;
 use std::fmt;
+// use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Copy, Clone)]
 struct DateTime {
@@ -32,30 +35,113 @@ impl FromStr for DateTime {
     type Err = DateTimeError;
 
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
-        let year = datetime_string
+        // let year = rfc3399_timestamp[0..4].parse::<u16>()?;
+        // let month = rfc3399_timestamp[5..7].parse::<u8>().unwrap();
+        // println!("month is {month:?}");
+        // let day = rfc3399_timestamp[8..10].parse::<u64>().unwrap();
+        // println!("day is {day:?}");
+        // let hour = rfc3399_timestamp[11..13].parse::<u8>().unwrap();
+        // println!("hour is {hour:?}");
+        // let minute = rfc3399_timestamp[14..16].parse::<u8>().unwrap();
+        // println!("minute is {minute:?}");
+        // let second = rfc3399_timestamp[17..19].parse::<u64>().unwrap();
+        // println!("second is {second:?}");
+
+        let year: u16 = datetime_string
             .get(0..4)
-            .ok_or_else(|| DateTimeError::ParsingError())?
-            .parse::<u16>()?;
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
+            })
+            .and_then(|year| {
+                year.parse::<u16>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
+                })
+            })?;
 
-        // Map
+        let month: u8 = datetime_string
+            .get(5..7)
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
+            })
+            .and_then(|year| {
+                year.parse::<u8>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
+                })
+            })?;
+        let day: u64 = datetime_string
+            .get(8..10)
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
+            })
+            .and_then(|year| {
+                year.parse::<u64>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
+                })
+            })?;
 
-        Ok(DateTime {
+        let hour: u8 = datetime_string
+            .get(11..12)
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+            })
+            .and_then(|year| {
+                year.parse::<u8>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                })
+            })?;
+
+        return Ok(Self {
             year,
+            month,
+            day,
+            hour,
             ..Default::default()
-        })
+        });
     }
 }
 
 #[derive(Debug)]
 enum DateTimeError {
-    ParsingError(ParseIntError),
+    ParsingError(String, DateTimePart),
+}
+
+#[derive(Debug)]
+enum DateTimePart {
+    Year,
+    Month,
+    Day,
+    Hour,
+    Minute,
+    Second,
+}
+
+impl Error for DateTimePart {}
+
+impl fmt::Display for DateTimePart {
+    fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return write!(
+            message,
+            "{}",
+            match &self {
+                Self::Year => "year",
+                Self::Month => "month",
+                Self::Day => "day",
+                Self::Hour => "hour",
+                Self::Minute => "minute",
+                Self::Second => "second",
+            }
+        );
+    }
 }
 
 impl fmt::Display for DateTimeError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ParsingError(file_path) => {
-                return write!(message, "No file found at {file_path}");
+            Self::ParsingError(datetime_string, date_time_part) => {
+                return write!(
+                    message,
+                    "Error: could not parse the {date_time_part} from {datetime_string}"
+                );
             }
         }
     }
@@ -63,13 +149,8 @@ impl fmt::Display for DateTimeError {
 impl Error for DateTimeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::TimeParsingError(ParseIntError) => return None,
+            Self::ParsingError(_, _) => None,
         }
-    }
-}
-impl From<num::ParseIntError> for DateTimeError {
-    fn from(error: ParseIntError) -> Self {
-        DateTimeError::ParsingError(error)
     }
 }
 
