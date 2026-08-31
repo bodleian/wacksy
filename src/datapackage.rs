@@ -7,6 +7,7 @@
 
 use base16ct::HexDisplay;
 use sha2::{Digest as _, Sha256};
+use std::io;
 use std::time::SystemTime;
 use std::{error::Error, fmt, fs, path::Path};
 
@@ -265,7 +266,7 @@ impl fmt::Display for DataPackageResource {
 pub enum DataPackageError {
     FileNameError(String),
     FilePathError(String),
-    FileReadError(std::io::Error),
+    FileReadError(io::Error),
 }
 impl fmt::Display for DataPackageError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
