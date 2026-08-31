@@ -4,7 +4,7 @@ use std::fmt;
 use std::str::FromStr;
 
 #[derive(Copy, Clone)]
-struct DateTime {
+pub struct DateTime {
     year: u16,
     month: u8,
     day: u64,
@@ -35,18 +35,8 @@ impl FromStr for DateTime {
     type Err = DateTimeError;
 
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
-        // let year = rfc3399_timestamp[0..4].parse::<u16>()?;
-        // let month = rfc3399_timestamp[5..7].parse::<u8>().unwrap();
-        // println!("month is {month:?}");
-        // let day = rfc3399_timestamp[8..10].parse::<u64>().unwrap();
-        // println!("day is {day:?}");
-        // let hour = rfc3399_timestamp[11..13].parse::<u8>().unwrap();
-        // println!("hour is {hour:?}");
-        // let minute = rfc3399_timestamp[14..16].parse::<u8>().unwrap();
-        // println!("minute is {minute:?}");
-        // let second = rfc3399_timestamp[17..19].parse::<u64>().unwrap();
-        // println!("second is {second:?}");
-
+        // Parse each section of the string to respective datetime structures.
+        // This involves a lot of repetition though.
         let year: u16 = datetime_string
             .get(0..4)
             .ok_or_else(|| {
@@ -80,12 +70,32 @@ impl FromStr for DateTime {
             })?;
 
         let hour: u8 = datetime_string
-            .get(11..12)
+            .get(11..13)
             .ok_or_else(|| {
                 DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
             })
             .and_then(|year| {
                 year.parse::<u8>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                })
+            })?;
+        let minute: u8 = datetime_string
+            .get(14..16)
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+            })
+            .and_then(|year| {
+                year.parse::<u8>().map_err(|_err| {
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                })
+            })?;
+        let second: u64 = datetime_string
+            .get(17..19)
+            .ok_or_else(|| {
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+            })
+            .and_then(|year| {
+                year.parse::<u64>().map_err(|_err| {
                     DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
                 })
             })?;
@@ -95,18 +105,19 @@ impl FromStr for DateTime {
             month,
             day,
             hour,
-            ..Default::default()
+            minute,
+            second,
         });
     }
 }
 
 #[derive(Debug)]
-enum DateTimeError {
+pub enum DateTimeError {
     ParsingError(String, DateTimePart),
 }
 
 #[derive(Debug)]
-enum DateTimePart {
+pub enum DateTimePart {
     Year,
     Month,
     Day,
@@ -147,11 +158,11 @@ impl fmt::Display for DateTimeError {
     }
 }
 impl Error for DateTimeError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ParsingError(_, _) => None,
-        }
-    }
+    // It would be a good idea at this point
+    // to impl source() for DateTimeError
+    // and use DateTimePart so we can idiomatically
+    // use error.source() to refer to the specific
+    // datetime section which couldn't be parsed.
 }
 
 impl Default for DateTime {
@@ -171,7 +182,7 @@ impl Default for DateTime {
 // This function takes seconds since unix epoch and returns
 // iso-8601 formatted string
 // Use this as a guide https://www.geeksforgeeks.org/dsa/convert-unix-timestamp-to-dd-mm-yyyy-hhmmss-format/
-pub fn seconds_to_rfc3399(seconds_from_epoch: u64) -> String {
+pub fn seconds_to_datetime(seconds_from_epoch: u64) -> DateTime {
     // Initialise datetime, starting with seconds_from_epoch
     let mut datetime = DateTime {
         second: seconds_from_epoch,
@@ -243,7 +254,7 @@ pub fn seconds_to_rfc3399(seconds_from_epoch: u64) -> String {
     // it no longer holds the total number of seconds
     // from unix epoch to now.
 
-    datetime.to_string()
+    return datetime;
 }
 #[cfg(test)]
 mod tests {
@@ -258,7 +269,7 @@ mod tests {
                 year,
                 ..Default::default()
             };
-            assert!(test_datetime.is_leap_year())
+            assert!(test_datetime.is_leap_year());
         }
     }
 
@@ -269,7 +280,22 @@ mod tests {
                 year,
                 ..Default::default()
             };
-            assert!(!test_datetime.is_leap_year())
+            assert!(!test_datetime.is_leap_year());
         }
+    }
+    #[test]
+    fn test_unix_epoch_to_datetime() {
+        let test_datetime = DateTime {
+            year: 2026,
+            month: 8,
+            day: 31,
+            hour: 21,
+            minute: 15,
+            second: 3,
+        };
+        assert_eq!(
+            seconds_to_datetime(1_788_210_903).to_string(),
+            test_datetime.to_string()
+        );
     }
 }
