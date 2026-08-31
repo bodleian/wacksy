@@ -13,7 +13,7 @@ use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
     indexer::{to_cdxj_string, to_pages_json_string, IndexRecord},
-    time::seconds_to_rfc3399,
+    time::seconds_to_datetime,
     WACZ_VERSION,
 };
 
@@ -79,7 +79,7 @@ impl Default for DataPackage {
         return Self {
             profile: "data-package".to_owned(),
             wacz_version: WACZ_VERSION.to_owned(),
-            created: seconds_to_rfc3399(seconds_from_epoch),
+            created: seconds_to_datetime(seconds_from_epoch).to_string(),
             software: format!("wacksy {}", env!("CARGO_PKG_VERSION")),
             resources: Vec::with_capacity(512),
         };
