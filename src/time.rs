@@ -17,6 +17,12 @@ impl DateTime {
         self.year.is_multiple_of(400)
             || (self.year.is_multiple_of(4) && !self.year.is_multiple_of(100))
     }
+    pub fn to_compressed_string(self) -> String {
+        return format!(
+            "{}{:02}{:02}{:02}{:02}{:02}",
+            self.year, self.month, self.day, self.hour, self.minute, self.second
+        );
+    }
 }
 impl fmt::Display for DateTime {
     // Display the datetime as an ISO8601/RFC3399 formatted string

@@ -1,4 +1,4 @@
-use chrono::DateTime;
+use crate::time::DateTime;
 use flate2::bufread::GzDecoder;
 use std::{
     fs::File,
@@ -33,11 +33,11 @@ pub fn to_cdxj_string(index: &[IndexRecord]) -> String {
     for record in index {
         let surt = create_surt(&record.url).unwrap();
         // Parse the timestamp, and write out a formatted string
-        let timestamp = DateTime::parse_from_rfc3339(&record.timestamp).unwrap();
+        let timestamp = DateTime::from_str(&record.timestamp).unwrap();
         let formatted_record = format!(
             "{} {} {{\"url\":\"{}\",\"digest\":\"{}\",\"mime\":\"{}\",\"offset\":{},\"length\":{},\"status\":{},\"filename\":\"{}\"}}\n",
             surt,
-            timestamp.format("%Y%m%d%H%M%S"),
+            timestamp.to_compressed_string(),
             record.url,
             record.digest,
             record.mime_type,
