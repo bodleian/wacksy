@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt;
-// use std::num::ParseIntError;
 use std::str::FromStr;
 
 #[derive(Copy, Clone)]
@@ -169,14 +168,14 @@ impl Default for DateTime {
     // This default state for DateTime is the Unix epoch:
     // 1970-01-01T00:00:00Z
     fn default() -> Self {
-        Self {
+        return Self {
             year: 1970,
             month: 1,
             day: 1,
             hour: 0,
             minute: 0,
             second: 0,
-        }
+        };
     }
 }
 // This function takes seconds since unix epoch and returns
@@ -284,18 +283,37 @@ mod tests {
         }
     }
     #[test]
-    fn test_unix_epoch_to_datetime() {
-        let test_datetime = DateTime {
-            year: 2026,
-            month: 8,
-            day: 31,
-            hour: 21,
-            minute: 15,
-            second: 3,
-        };
+    fn test_unix_epoch_to_datetime_string() {
+        // Should show 1970-01-01T00:00:00Z
+        assert_eq!(
+            seconds_to_datetime(0).to_string(),
+            DateTime::default().to_string()
+        );
+        // Should show 2026-08-31T21:15:3Z
         assert_eq!(
             seconds_to_datetime(1_788_210_903).to_string(),
-            test_datetime.to_string()
+            DateTime {
+                year: 2026,
+                month: 8,
+                day: 31,
+                hour: 21,
+                minute: 15,
+                second: 3,
+            }
+            .to_string()
+        );
+        // Should show 2026-09-01-08:04:26Z
+        assert_eq!(
+            seconds_to_datetime(1_788_249_866).to_string(),
+            DateTime {
+                year: 2026,
+                month: 9,
+                day: 1,
+                hour: 8,
+                minute: 4,
+                second: 26,
+            }
+            .to_string()
         );
     }
 }
