@@ -220,7 +220,7 @@ pub fn seconds_to_datetime(seconds_from_epoch: u64) -> DateTime {
     // days until only days are left. There's a better way of doing
     // this for sure!
     for days in &days_per_month {
-        if datetime.day >= *days {
+        if datetime.day > *days {
             datetime.day -= days;
             datetime.month += 1;
         } else {
