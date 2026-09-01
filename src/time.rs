@@ -87,21 +87,21 @@ impl FromStr for DateTime {
         let minute: u8 = datetime_string
             .get(14..16)
             .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
             })
             .and_then(|year| {
                 year.parse::<u8>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
                 })
             })?;
         let second: u64 = datetime_string
             .get(17..19)
             .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
             })
             .and_then(|year| {
                 year.parse::<u64>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
                 })
             })?;
 
