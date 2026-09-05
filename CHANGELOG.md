@@ -3,13 +3,30 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/bodleian/wacksy/compare/v0.3.4..v0.4.0) - 2026-09-05
+
+The main thing in this release is I wrote a custom datetime formatter in `src/time.rs` to replace the Chrono library. Chrono was only used in two places and it felt wasteful to vendor the [timezone database](https://crates.io/crates/iana-time-zone) considering I only need timestamps in UTC. This reduces the (GNU/Linux x86) binary size by 7%, and removing one more dependency makes this slightly more portable. Without measuring anything, it's very likely my datetime calculation is slower than chrono. It was fun to write though.
+Thanks to @satlank for giving me an example to adapt here.
+
+### Dependencies
+
+- Removed chrono ([#107](https://github.com/bodleian/wacksy/pull/107) and [#111](https://github.com/bodleian/wacksy/pull/111)).
+- Updated rawzip to 0.5.1 ([#108](https://github.com/bodleian/wacksy/pull/108)), and as part of that I removed the option to use deflate compression on the WACZ. The spec is very clear that already-compressed assets should not be re-compressed, which is sensible, and I've not yet thought about how best to compress the indexes. Removing all compression from the zip makes things simpler for now.
+
+### Other
+
+- Bumped MSRV to 1.88.
+- Added a [Cargo shear](https://github.com/boshen/cargo-shear) check to the auditing job on the CI pipeline, which identified serde as an unnecessary dev dependency.
+- Very minor CI optimisation with Cargo audit. Since audit just needs the Cargo manifest and lockfile, we now do a sparse git checkout for only those two files.
+
 ## [0.3.4](https://github.com/bodleian/wacksy/compare/v0.3.2...v0.3.4) - 2026-06-06
 
-This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**. If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
+This release includes binaries for a lot of platforms, but very importantly **I have not systematically tested Wacksy on any platform other than Ubuntu ARM 24.04**.
+If you do try wacksy out on FreeBSD or MacOS or something and it works, that's cool, please let me know!
 
 ## [0.3.2](https://github.com/bodleian/wacksy/compare/v0.2.0...v0.3.2) - 2026-06-06
 
@@ -21,7 +38,8 @@ Indexing multiple WARCs ended up creating a datapackage which did not pass frict
 
 ### Dependencies
 
-I updated the sha2 crate to version 0.11 ([#87](https://github.com/bodleian/wacksy/issues/87)), and this newer version removed the trait for formatting hashes as hex strings. So, I have _added_ the [base16ct](https://docs.rs/base16ct/latest/base16ct/) crate as a new dependency to do the formatting.
+I updated the sha2 crate to version 0.11 ([#87](https://github.com/bodleian/wacksy/issues/87)), and this newer version removed the trait for formatting hashes as hex strings.
+So, I have _added_ the [base16ct](https://docs.rs/base16ct/latest/base16ct/) crate as a new dependency to do the formatting.
 
 ### Development
 
