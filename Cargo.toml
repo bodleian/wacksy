@@ -2,7 +2,7 @@
 name = "wacksy"
 version = "0.3.4"
 edition = "2024"
-rust-version = "1.87"
+rust-version = "1.88"
 license = "MIT"
 repository = "https://github.com/bodleian/wacksy"
 documentation = "https://docs.rs/wacksy/latest/wacksy/"
