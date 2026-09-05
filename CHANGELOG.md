@@ -7,7 +7,7 @@ and this project (loosely) adheres to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-## [0.4.2](https://github.com/bodleian/wacksy/compare/v0.3.4..v0.4.2) - 2026-09-05
+## [0.4.3](https://github.com/bodleian/wacksy/compare/v0.3.4..v0.4.3) - 2026-09-05
 
 The main thing in this release is I wrote a custom datetime formatter in `src/time.rs` to replace the Chrono library. Chrono was only used in two places and it felt wasteful to vendor the [timezone database](https://crates.io/crates/iana-time-zone) considering I only need timestamps in UTC. This reduces the (GNU/Linux x86) binary size by 7%, and removing one more dependency makes this slightly more portable. Without measuring anything, it's very likely my datetime calculation is slower than chrono. It was fun to write though.
 Thanks to @satlank for giving me an example to adapt here.
@@ -22,6 +22,8 @@ Thanks to @satlank for giving me an example to adapt here.
 - Bumped MSRV to 1.88.
 - Added a [Cargo shear](https://github.com/boshen/cargo-shear) check to the auditing job on the CI pipeline, which identified serde as an unnecessary dev dependency.
 - Very minor CI optimisation with Cargo audit. Since audit just needs the Cargo manifest and lockfile, we now do a sparse git checkout for only those two files.
+
+The release process is still very fragile, so this release probably won't be accompanied by a full set of binaries for every platform.
 
 ## [0.3.4](https://github.com/bodleian/wacksy/compare/v0.3.2...v0.3.4) - 2026-06-06
 
