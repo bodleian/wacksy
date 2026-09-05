@@ -80,7 +80,7 @@ jobs:
           cargo run tests/example.warc.gz tests/example2.warc.gz --output tests/output_multiple_warcs.wacz
 
       - name: Setup py-wacz
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
           cache: 'pip' 
