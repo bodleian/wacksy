@@ -7,13 +7,14 @@
 
 use base16ct::HexDisplay;
 use sha2::{Digest as _, Sha256};
+use std::io;
 use std::time::SystemTime;
 use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
     WACZ_VERSION,
     indexer::{IndexRecord, to_cdxj_string, to_pages_json_string},
-    time::seconds_to_rfc3399,
+    time::seconds_to_datetime,
 };
 
 /// The main datapackage struct.
@@ -25,7 +26,7 @@ pub struct DataPackage {
     pub wacz_version: String,
     /// WACZ creation date, this is set to local datetime in [RFC 3399 format](https://rfc3339.date/).
     pub created: String,
-    /// The name of the software used to create the WACZ file, in this case `wacksy 0.3.4`.
+    /// The name of the software used to create the WACZ file, in this case `wacksy 0.4.3`.
     pub software: String,
     /// List of file names, paths, sizes, and fixity for all files contained in the WACZ.
     pub resources: Vec<DataPackageResource>,
@@ -78,7 +79,7 @@ impl Default for DataPackage {
         return Self {
             profile: "data-package".to_owned(),
             wacz_version: WACZ_VERSION.to_owned(),
-            created: seconds_to_rfc3399(seconds_from_epoch),
+            created: seconds_to_datetime(seconds_from_epoch).to_string(),
             software: format!("wacksy {}", env!("CARGO_PKG_VERSION")),
             resources: Vec::with_capacity(512),
         };
@@ -176,7 +177,7 @@ impl fmt::Display for DataPackage {
     //!   "profile": "data-package",
     //!   "wacz_version": "1.1.1",
     //!   "created": "2026-05-06T11:03:03Z",
-    //!   "software": "wacksy 0.3.4",
+    //!   "software": "wacksy 0.4.3",
     //!   "resources": [
     //!     {
     //!       "name": "data.warc",
@@ -265,7 +266,7 @@ impl fmt::Display for DataPackageResource {
 pub enum DataPackageError {
     FileNameError(String),
     FilePathError(String),
-    FileReadError(std::io::Error),
+    FileReadError(io::Error),
 }
 impl fmt::Display for DataPackageError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {

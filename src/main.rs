@@ -33,6 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
+    // Map arguments to Path types
     let warc_file_paths: Vec<&Path> = warc_args.iter().map(Path::new).collect();
     let wacz_object = WACZ::from_files(&warc_file_paths)?;
     let zipped_wacz: Vec<u8> = wacz_object.as_zip_archive()?;

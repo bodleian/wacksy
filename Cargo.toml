@@ -1,8 +1,8 @@
 [package]
 name = "wacksy"
-version = "0.3.4"
+version = "0.4.3"
 edition = "2024"
-rust-version = "1.87"
+rust-version = "1.88"
 license = "MIT"
 repository = "https://github.com/bodleian/wacksy"
 documentation = "https://docs.rs/wacksy/latest/wacksy/"
@@ -13,18 +13,16 @@ include = ["src/**/*", "LICENSE", "README.md"]
 
 [dependencies]
 base16ct = "1.0.0"
-chrono = "0.4.44"
 flate2 = "1.1.9"
-rawzip = "0.4.4"
+rawzip = "0.5.1"
 sha2 = "0.11.0"
 
 [dev-dependencies]
 pretty_assertions = "1"
-jsonschema = { version = "0.46.5", default-features = false, features = [
+jsonschema = { version = "0.58.0", default-features = false, features = [
     "resolve-file",
 ] }
 serde_json = "1.0.150"
-serde = { version = "1.0.218", features = ["derive"] }
 
 [lints.rust]
 unsafe_code = "forbid"
