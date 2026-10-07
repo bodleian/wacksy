@@ -14,8 +14,8 @@ pub struct DateTime {
 impl DateTime {
     #[inline]
     const fn is_leap_year(self) -> bool {
-        self.year.is_multiple_of(400)
-            || (self.year.is_multiple_of(4) && !self.year.is_multiple_of(100))
+        return self.year.is_multiple_of(400)
+            || (self.year.is_multiple_of(4) && !self.year.is_multiple_of(100));
     }
     pub fn to_compressed_string(self) -> String {
         return format!(

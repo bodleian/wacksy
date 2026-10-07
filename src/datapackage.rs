@@ -12,9 +12,9 @@ use std::time::SystemTime;
 use std::{error::Error, fmt, fs, path::Path};
 
 use crate::{
-    indexer::{to_cdxj_string, to_pages_json_string, IndexRecord},
-    time::seconds_to_datetime,
     WACZ_VERSION,
+    indexer::{IndexRecord, to_cdxj_string, to_pages_json_string},
+    time::seconds_to_datetime,
 };
 
 /// The main datapackage struct.
