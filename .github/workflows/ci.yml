@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: '3.x'
           cache: 'pip' 
-      - run: pip install -r tests/requirements.txt
+      - run: pip install wacz
 
       - name: Validate wacz file with py-wacz
         run: |
