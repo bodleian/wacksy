@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct DateTime {
     year: u16,
     month: u8,
@@ -39,9 +39,10 @@ impl fmt::Display for DateTime {
 impl FromStr for DateTime {
     type Err = DateTimeError;
 
+    // Expects a string in ISO8601/RFC3399 format eg. YYYY-MM-DD HH:MM:SS
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
         // Parse each section of the string to respective datetime structures.
-        // This involves a lot of repetition though.
+        // This involves a lot of repetition and could be rewritten?
         let year: u16 = datetime_string
             .get(0..4)
             .ok_or_else(|| {
@@ -289,15 +290,13 @@ mod tests {
         }
     }
     #[test]
-    fn test_unix_epoch_to_datetime_string() {
-        // Should show 1970-01-01T00:00:00Z
+    fn parse_datetime_from_string() {
         assert_eq!(
-            seconds_to_datetime(0).to_string(),
-            DateTime::default().to_string()
+            DateTime::from_str("1970-01-01T00:00:00Z").unwrap(),
+            DateTime::default()
         );
-        // Should show 2026-08-31T21:15:3Z
         assert_eq!(
-            seconds_to_datetime(1_788_210_903).to_string(),
+            DateTime::from_str("2026-08-31T21:15:03Z").unwrap(),
             DateTime {
                 year: 2026,
                 month: 8,
@@ -306,11 +305,9 @@ mod tests {
                 minute: 15,
                 second: 3,
             }
-            .to_string()
         );
-        // Should show 2026-09-01-08:04:26Z
         assert_eq!(
-            seconds_to_datetime(1_788_249_866).to_string(),
+            DateTime::from_str("2026-09-01T08:04:26Z").unwrap(),
             DateTime {
                 year: 2026,
                 month: 9,
@@ -319,7 +316,59 @@ mod tests {
                 minute: 4,
                 second: 26,
             }
-            .to_string()
+        );
+    }
+    #[test]
+    fn test_unix_epoch_to_datetime_string() {
+        assert_eq!(seconds_to_datetime(0).to_string(), "1970-01-01T00:00:00Z");
+        assert_eq!(
+            seconds_to_datetime(1_788_210_903).to_string(),
+            "2026-08-31T21:15:03Z"
+        );
+        assert_eq!(
+            seconds_to_datetime(1_788_249_866).to_string(),
+            "2026-09-01T08:04:26Z"
+        );
+    }
+        #[test]
+    fn test_unix_epoch_to_compressed_string() {
+        assert_eq!(seconds_to_datetime(0).to_compressed_string(), "19700101000000");
+        assert_eq!(
+            seconds_to_datetime(1_788_210_903).to_compressed_string(),
+            "20260831211503"
+        );
+        assert_eq!(
+            seconds_to_datetime(1_788_249_866).to_compressed_string(),
+            "20260901080426"
+        );
+    }
+    #[test]
+    fn test_unix_epoch_to_datetime() {
+        // Should be 1970-01-01T00:00:00Z
+        assert_eq!(seconds_to_datetime(0), DateTime::default());
+        // Should be 2026-08-31T21:15:03Z
+        assert_eq!(
+            seconds_to_datetime(1_788_210_903),
+            DateTime {
+                year: 2026,
+                month: 8,
+                day: 31,
+                hour: 21,
+                minute: 15,
+                second: 3,
+            }
+        );
+        // Should be 2026-09-01T08:04:26Z
+        assert_eq!(
+            seconds_to_datetime(1_788_249_866),
+            DateTime {
+                year: 2026,
+                month: 9,
+                day: 1,
+                hour: 8,
+                minute: 4,
+                second: 26,
+            }
         );
     }
 }
