@@ -43,69 +43,15 @@ impl FromStr for DateTime {
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
         // Parse each section of the string to respective datetime structures.
         // This involves a lot of repetition and could be rewritten?
-        let year: u16 = datetime_string
-            .get(0..4)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
-            })
-            .and_then(|year| {
-                year.parse::<u16>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
-                })
-            })?;
 
-        let month: u8 = datetime_string
-            .get(5..7)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
-            })
-            .and_then(|year| {
-                year.parse::<u8>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
-                })
-            })?;
-        let day: u64 = datetime_string
-            .get(8..10)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
-            })
-            .and_then(|year| {
-                year.parse::<u64>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
-                })
-            })?;
-
-        let hour: u8 = datetime_string
-            .get(11..13)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
-            })
-            .and_then(|year| {
-                year.parse::<u8>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
-                })
-            })?;
-        let minute: u8 = datetime_string
-            .get(14..16)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
-            })
-            .and_then(|year| {
-                year.parse::<u8>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
-                })
-            })?;
-        let second: u64 = datetime_string
-            .get(17..19)
-            .ok_or_else(|| {
-                DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
-            })
-            .and_then(|year| {
-                year.parse::<u64>().map_err(|_err| {
-                    DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
-                })
-            })?;
-
+        // This is expressed succinctly
+    if let Some(Ok(year)) = datetime_string.get(0..4).map(|year| year.parse::<u64>())
+        && let Some(Ok(month)) = datetime_string.get(5..7).map(|month| month.parse::<u64>())
+        && let Some(Ok(day)) = datetime_string.get(8..10).map(|day| day.parse::<u64>())
+        && let Some(Ok(hour)) = datetime_string.get(11..13).map(|hour| hour.parse::<u64>())
+        && let Some(Ok(minute)) = datetime_string.get(14..16).map(|minute| minute.parse::<u64>())
+        && let Some(Ok(second)) = datetime_string.get(17..19).map(|second| second.parse::<u64>())
+    {
         return Ok(Self {
             year,
             month,
@@ -114,6 +60,74 @@ impl FromStr for DateTime {
             minute,
             second,
         });
+    } else {
+        println!("error")
+    }
+
+
+        // let year: u16 = datetime_string
+        //     .get(0..4)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u16>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
+        //         })
+        //     })?;
+
+        // let month: u8 = datetime_string
+        //     .get(5..7)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u8>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
+        //         })
+        //     })?;
+        // let day: u64 = datetime_string
+        //     .get(8..10)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u64>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
+        //         })
+        //     })?;
+
+        // let hour: u8 = datetime_string
+        //     .get(11..13)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u8>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
+        //         })
+        //     })?;
+        // let minute: u8 = datetime_string
+        //     .get(14..16)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u8>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
+        //         })
+        //     })?;
+        // let second: u64 = datetime_string
+        //     .get(17..19)
+        //     .ok_or_else(|| {
+        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
+        //     })
+        //     .and_then(|year| {
+        //         year.parse::<u64>().map_err(|_err| {
+        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
+        //         })
+        //     })?;
+
     }
 }
 
