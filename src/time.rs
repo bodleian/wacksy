@@ -41,138 +41,42 @@ impl FromStr for DateTime {
 
     // Expects a string in ISO8601/RFC3399 format eg. YYYY-MM-DD HH:MM:SS
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
-        // Parse each section of the string to respective datetime structures.
-        // This involves a lot of repetition and could be rewritten?
 
-        // This is expressed succinctly
-    if let Some(Ok(year)) = datetime_string.get(0..4).map(|year| year.parse::<u64>())
-        && let Some(Ok(month)) = datetime_string.get(5..7).map(|month| month.parse::<u64>())
-        && let Some(Ok(day)) = datetime_string.get(8..10).map(|day| day.parse::<u64>())
-        && let Some(Ok(hour)) = datetime_string.get(11..13).map(|hour| hour.parse::<u64>())
-        && let Some(Ok(minute)) = datetime_string.get(14..16).map(|minute| minute.parse::<u64>())
-        && let Some(Ok(second)) = datetime_string.get(17..19).map(|second| second.parse::<u64>())
-    {
-        return Ok(Self {
-            year,
-            month,
-            day,
-            hour,
-            minute,
-            second,
-        });
-    } else {
-        println!("error")
-    }
-
-
-        // let year: u16 = datetime_string
-        //     .get(0..4)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u16>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Year)
-        //         })
-        //     })?;
-
-        // let month: u8 = datetime_string
-        //     .get(5..7)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u8>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Month)
-        //         })
-        //     })?;
-        // let day: u64 = datetime_string
-        //     .get(8..10)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u64>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Day)
-        //         })
-        //     })?;
-
-        // let hour: u8 = datetime_string
-        //     .get(11..13)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u8>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Hour)
-        //         })
-        //     })?;
-        // let minute: u8 = datetime_string
-        //     .get(14..16)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u8>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Minute)
-        //         })
-        //     })?;
-        // let second: u64 = datetime_string
-        //     .get(17..19)
-        //     .ok_or_else(|| {
-        //         DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
-        //     })
-        //     .and_then(|year| {
-        //         year.parse::<u64>().map_err(|_err| {
-        //             DateTimeError::ParsingError(datetime_string.to_owned(), DateTimePart::Second)
-        //         })
-        //     })?;
-
+        // Parse each section of the string to respective datetime values.
+        if let Some(Ok(year)) = datetime_string.get(0..4).map(str::parse::<u16>)
+            && let Some(Ok(month)) = datetime_string.get(5..7).map(str::parse::<u8>)
+            && let Some(Ok(day)) = datetime_string.get(8..10).map(str::parse::<u64>)
+            && let Some(Ok(hour)) = datetime_string.get(11..13).map(str::parse::<u8>)
+            && let Some(Ok(minute)) = datetime_string.get(14..16).map(str::parse::<u8>)
+            && let Some(Ok(second)) = datetime_string.get(17..19).map(str::parse::<u64>)
+        {
+            return Ok(Self {
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                second,
+            });
+        } else {
+            Err(DateTimeError::ParsingError(datetime_string.to_owned()))
+        }
     }
 }
 
 #[derive(Debug)]
 pub enum DateTimeError {
-    ParsingError(String, DateTimePart),
-}
-
-#[derive(Debug)]
-pub enum DateTimePart {
-    Year,
-    Month,
-    Day,
-    Hour,
-    Minute,
-    Second,
-}
-
-impl Error for DateTimePart {}
-
-impl fmt::Display for DateTimePart {
-    fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
-        return write!(
-            message,
-            "{}",
-            match &self {
-                Self::Year => "year",
-                Self::Month => "month",
-                Self::Day => "day",
-                Self::Hour => "hour",
-                Self::Minute => "minute",
-                Self::Second => "second",
-            }
-        );
-    }
+    ParsingError(String),
 }
 
 impl fmt::Display for DateTimeError {
     fn fmt(&self, message: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ParsingError(datetime_string, date_time_part) => {
-                return write!(
-                    message,
-                    "Error: could not parse the {date_time_part} from {datetime_string}"
-                );
+            Self::ParsingError(datetime_string) => {
+                // This message should indicate what format the datetime string should be in.
+                // When propogating it up the chain, the caller should also give some
+                // detail about where the error occurred.
+                return write!(message, "Error: could not parse the {datetime_string}"); 
             }
         }
     }
@@ -344,9 +248,12 @@ mod tests {
             "2026-09-01T08:04:26Z"
         );
     }
-        #[test]
+    #[test]
     fn test_unix_epoch_to_compressed_string() {
-        assert_eq!(seconds_to_datetime(0).to_compressed_string(), "19700101000000");
+        assert_eq!(
+            seconds_to_datetime(0).to_compressed_string(),
+            "19700101000000"
+        );
         assert_eq!(
             seconds_to_datetime(1_788_210_903).to_compressed_string(),
             "20260831211503"
