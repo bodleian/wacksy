@@ -1,11 +1,12 @@
 use std::error::Error;
 use std::fmt;
+use std::num::NonZero;
 use std::str::FromStr;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct DateTime {
     year: u16,
-    month: u8,
+    month: NonZero<u8>,
     day: u64,
     hour: u8,
     minute: u8,
@@ -41,10 +42,9 @@ impl FromStr for DateTime {
 
     // Expects a string in ISO8601/RFC3399 format eg. YYYY-MM-DD HH:MM:SS
     fn from_str(datetime_string: &str) -> Result<Self, Self::Err> {
-
         // Parse each section of the string to respective datetime values.
         if let Some(Ok(year)) = datetime_string.get(0..4).map(str::parse::<u16>)
-            && let Some(Ok(month)) = datetime_string.get(5..7).map(str::parse::<u8>)
+            && let Some(Ok(month)) = datetime_string.get(5..7).map(str::parse::<NonZero<u8>>)
             && let Some(Ok(day)) = datetime_string.get(8..10).map(str::parse::<u64>)
             && let Some(Ok(hour)) = datetime_string.get(11..13).map(str::parse::<u8>)
             && let Some(Ok(minute)) = datetime_string.get(14..16).map(str::parse::<u8>)
@@ -76,7 +76,7 @@ impl fmt::Display for DateTimeError {
                 // This message should indicate what format the datetime string should be in.
                 // When propogating it up the chain, the caller should also give some
                 // detail about where the error occurred.
-                return write!(message, "Error: could not parse the {datetime_string}"); 
+                return write!(message, "Error: could not parse the {datetime_string}");
             }
         }
     }
@@ -95,7 +95,7 @@ impl Default for DateTime {
     fn default() -> Self {
         return Self {
             year: 1970,
-            month: 1,
+            month: NonZero::new(1).expect("months cannot be zero"),
             day: 1,
             hour: 0,
             minute: 0,
@@ -130,7 +130,7 @@ pub fn seconds_to_datetime(seconds_from_epoch: u64) -> DateTime {
         datetime.year += 1;
     }
 
-    let days_per_month: [u64; 12] = if datetime.is_leap_year() {
+    let days_per_month_list: [u64; 12] = if datetime.is_leap_year() {
         // If the year is a leap year, the second month
         // February will have 29 days
         [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -143,10 +143,16 @@ pub fn seconds_to_datetime(seconds_from_epoch: u64) -> DateTime {
     // Loop through days per month, increment months and subtract
     // days until only days are left. There's a better way of doing
     // this for sure!
-    for days in &days_per_month {
-        if datetime.day > *days {
-            datetime.day -= days;
-            datetime.month += 1;
+    for days_in_month in &days_per_month_list {
+        if datetime.day > *days_in_month {
+            datetime.day = datetime
+                .day
+                .checked_sub(*days_in_month)
+                .expect("could not subtract days in month from total number of days");
+            datetime.month = datetime
+                .month
+                .checked_add(1)
+                .expect("could not increment month");
         } else {
             break;
         }
@@ -217,7 +223,7 @@ mod tests {
             DateTime::from_str("2026-08-31T21:15:03Z").unwrap(),
             DateTime {
                 year: 2026,
-                month: 8,
+                month: NonZero::new(8).unwrap(),
                 day: 31,
                 hour: 21,
                 minute: 15,
@@ -228,7 +234,7 @@ mod tests {
             DateTime::from_str("2026-09-01T08:04:26Z").unwrap(),
             DateTime {
                 year: 2026,
-                month: 9,
+                month: NonZero::new(9).unwrap(),
                 day: 1,
                 hour: 8,
                 minute: 4,
@@ -272,7 +278,7 @@ mod tests {
             seconds_to_datetime(1_788_210_903),
             DateTime {
                 year: 2026,
-                month: 8,
+                month: NonZero::new(8).unwrap(),
                 day: 31,
                 hour: 21,
                 minute: 15,
@@ -284,7 +290,7 @@ mod tests {
             seconds_to_datetime(1_788_249_866),
             DateTime {
                 year: 2026,
-                month: 9,
+                month: NonZero::new(9).unwrap(),
                 day: 1,
                 hour: 8,
                 minute: 4,
