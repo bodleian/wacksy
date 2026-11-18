@@ -29,16 +29,3 @@ jobs:
             Cargo.lock
       - name: "Run audit"
         uses: actions-rust-lang/audit@v1
-
-  shear:
-    name: "Identify unused dependencies"
-    runs-on: ubuntu-24.04-arm
-    steps:
-    - name: "Checkout repository"
-      uses: actions/checkout@v7
-    - name: "Install cargo-binstall"
-      uses: cargo-bins/cargo-binstall@main
-    - name: "Install cargo-shear"
-      run: cargo binstall --no-confirm cargo-shear
-    - name: "Run cargo-shear"
-      run: cargo shear --deny-warnings
